@@ -1,6 +1,5 @@
 package com.dhrubok.taskmaster.auth.services;
 
-
 import com.dhrubok.taskmaster.auth.constants.SecurityConstant;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -22,47 +21,54 @@ public class JWTService {
             Decoders.BASE64.decode(SecurityConstant.JWT_SECRET)
     );
 
-    // 🔹 Generate JWT Token
-    public String generateToken(String email) {
-        Map<String, Object> claims = new HashMap<>();
+    // 🔹 1. Generate Access Token (Short Lived)
+    public String generateAccessToken(String email) {
+        return buildToken(new HashMap<>(), email, SecurityConstant.JWT_EXPIRATION_MILLIS);
+    }
+
+    // 🔹 2. Generate Refresh Token (Long Lived)
+    public String generateRefreshToken(String email) {
+        return buildToken(new HashMap<>(), email, SecurityConstant.REFRESH_EXPIRATION_MILLIS);
+    }
+
+    // 🔹 Helper Method to Build Token (Prevents Code Duplication)
+    private String buildToken(Map<String, Object> claims, String subject, long expiration) {
         return Jwts.builder()
                 .claims(claims)
-                .subject(email.toLowerCase())
+                .subject(subject.toLowerCase())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + SecurityConstant.JWT_EXPIRATION_MILLIS))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(secretKey)
                 .compact();
     }
 
-    // 🔹 Validate token
+    // 🔹 Validate token (Checks username and expiry)
+    public boolean validateToken(String token, String username) {
+        final String extractedUsername = extractUserName(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
+    }
+
+    // Overload for UserDetails (used in JwtFilter)
     public boolean validateToken(String token, UserDetails userDetails) {
-        String username = extractUserName(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return validateToken(token, userDetails.getUsername());
     }
 
     // 🔹 Extract username from JWT
     public String extractUserName(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+        return extractClaim(token, Claims::getSubject);
     }
 
     // 🔹 Check if token expired
     private boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration();
-        return expiration.before(new Date());
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
     }
 
     // 🔹 Extract specific claim
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }

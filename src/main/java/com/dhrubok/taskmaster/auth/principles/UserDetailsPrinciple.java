@@ -1,4 +1,4 @@
-package com.dhrubok.taskmaster.auth.models;
+package com.dhrubok.taskmaster.auth.principles;
 
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import lombok.RequiredArgsConstructor;

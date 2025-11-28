@@ -1,6 +1,6 @@
 package com.dhrubok.taskmaster.auth.services;
 
-import com.dhrubok.taskmaster.auth.models.UserDetailsPrinciple;
+import com.dhrubok.taskmaster.auth.principles.UserDetailsPrinciple;
 import com.dhrubok.taskmaster.common.exceptions.ResourceNotFoundException;
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import com.dhrubok.taskmaster.persistence.auth.repositories.UserRepository;

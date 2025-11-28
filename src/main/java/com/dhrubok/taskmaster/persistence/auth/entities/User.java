@@ -3,6 +3,7 @@ package com.dhrubok.taskmaster.persistence.auth.entities;
 import com.dhrubok.taskmaster.persistence.auth.enums.RoleType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
     @Id
     @Column(name = "user_id", updatable = false, nullable = false, length = 36)
@@ -53,11 +55,17 @@ public class User {
     @Column(name = "is_enabled", nullable = false)
     private Boolean isEnabled = false;
 
+    @Column(name = "is_email_verified", nullable = false)
+    private Boolean isEmailVerified = false;
+
     @Column(name = "verification_token")
     private String verificationToken;
 
     @Column(name = "token_expiry_date")
     private Instant tokenExpiryDate;
+
+    @Column(name = "refresh_token")
+    private String refreshToken;
 
     @PrePersist
     protected void prePersist() {

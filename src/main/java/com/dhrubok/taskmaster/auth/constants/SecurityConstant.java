@@ -7,6 +7,27 @@ public final class SecurityConstant {
     public static final String JWT_SECRET = Base64.getEncoder().encodeToString(
             "MY_SUPER_SECRET_KEY_12345678901234567890".getBytes()
     );
+
     public static final String JWT_ALGORITHM = "HmacSHA256";
-    public static final long JWT_EXPIRATION_MILLIS = 1000 * 60 * 60 * 10; // 10 hours
+    public static final long JWT_EXPIRATION_MILLIS = 1000 * 60 * 15; // Access Token = 15 Minutes
+    public static final long REFRESH_EXPIRATION_MILLIS = 1000 * 60 * 60 * 24 * 7; // Refresh Token = 7 Days
+
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+
+    public static final String[] PUBLIC_URLS = {
+            "/api/auth/verify",
+            "/api/auth/sign-in",
+            "/api/auth/sign-up",
+            "/api/auth/resend-verification",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password",
+            "/public/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**"
+    };
+
+    public static final String VERIFICATION_URL = "http://localhost:8080/api/auth/verify?token=";
+    public static final String VERIFICATION_URL2 = "/api/auth/verify?token=";
+    public static final String DASHBOARD_URL = "http://localhost:8080/dashboard";
+    public static final String RESET_PASSWORD_URL = "/reset-password?token=";
 }

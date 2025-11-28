@@ -16,6 +16,15 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(ApplicationException.class)
+    public ResponseEntity<Response> handleException(ApplicationException ex) {
+        Response response = new Response(
+                HttpStatus.BAD_REQUEST,
+                Boolean.FALSE,
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 
     // HANDLE VALIDATION ERRORS (@Valid, @NotNull, @Size, etc.)
     @ExceptionHandler(MethodArgumentNotValidException.class)

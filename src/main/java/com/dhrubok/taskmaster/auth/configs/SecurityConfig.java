@@ -1,6 +1,7 @@
 package com.dhrubok.taskmaster.auth.configs;
 
 
+import com.dhrubok.taskmaster.auth.constants.SecurityConstant;
 import com.dhrubok.taskmaster.auth.filters.JwtFilter;
 import com.dhrubok.taskmaster.auth.services.JWTService;
 import lombok.RequiredArgsConstructor;
@@ -33,13 +34,9 @@ public class SecurityConfig {
         JwtFilter jwtFilter = new JwtFilter(jwtService, userDetailsService);
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configure(http))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(
-                                "/api/auth/sign-in",
-                                "/api/auth/sign-up",
-                                "/public/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**")
+                        .requestMatchers(SecurityConstant.PUBLIC_URLS)
                         .permitAll()
                         .requestMatchers("/api/member/**").hasRole("MEMBER")
                         .anyRequest().authenticated())
