@@ -3,21 +3,23 @@ package com.dhrubok.taskmaster.persistence.auth.entities;
 import com.dhrubok.taskmaster.persistence.auth.enums.RoleType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long id;
+    @Column(name = "user_id", updatable = false, nullable = false, length = 36)
+    private String id;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -50,9 +52,26 @@ public class User {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Column(name = "is_enabled", nullable = false)
+    private Boolean isEnabled = false;
+
+    @Column(name = "is_email_verified", nullable = false)
+    private Boolean isEmailVerified = false;
+
+    @Column(name = "verification_token")
+    private String verificationToken;
+
+    @Column(name = "token_expiry_date")
+    private Instant tokenExpiryDate;
+
+    @Column(name = "refresh_token")
+    private String refreshToken;
 
     @PrePersist
-    protected void onCreate() {
+    protected void prePersist() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID().toString();
+        }
         this.createdAt = Instant.now();
         if (this.updatedAt == null) {
             this.updatedAt = this.createdAt;
@@ -60,7 +79,7 @@ public class User {
     }
 
     @PreUpdate
-    protected void onUpdate() {
+    protected void preUpdate() {
         this.updatedAt = Instant.now();
     }
 }
