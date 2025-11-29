@@ -110,4 +110,20 @@ public class EmailService {
                 )
         );
     }
+
+    public void sendMemberWelcomeEmail(String email, String fullName, String generatedPassword, String verificationUrl)
+            throws MessagingException, IOException {
+
+        sendHtmlEmail(
+                email,
+                "🎉 Welcome to TaskMaster - Your Account Details",
+                "member-welcome-email.html",
+                Map.of(
+                        "{{FULL_NAME}}", fullName,
+                        "{{EMAIL}}", email,
+                        "{{PASSWORD}}", generatedPassword,
+                        "{{VERIFICATION_URL}}", verificationUrl
+                )
+        );
+    }
 }
