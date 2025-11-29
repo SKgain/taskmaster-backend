@@ -5,7 +5,7 @@ import java.util.Base64;
 public final class SecurityConstant {
 
     public static final String JWT_SECRET = Base64.getEncoder().encodeToString(
-            "MY_SUPER_SECRET_KEY_12345678901234567890".getBytes()
+            "3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b32066d9317521c7f5c228122396348630325f1906236357d745428616c682701".getBytes()
     );
 
     public static final String JWT_ALGORITHM = "HmacSHA256";

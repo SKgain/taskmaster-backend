@@ -38,7 +38,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(SecurityConstant.PUBLIC_URLS)
                         .permitAll()
-                        .requestMatchers("/api/member/**").hasRole("MEMBER")
+                        .requestMatchers("/api/users/**").hasAnyRole("MEMBER","MANAGER","ADMIN")
+                        .requestMatchers("/api/manager/**").hasAnyRole("MANAGER","ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

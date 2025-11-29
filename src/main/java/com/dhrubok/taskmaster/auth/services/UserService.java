@@ -27,6 +27,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -55,6 +56,7 @@ public class UserService {
     @Value("${app.base-url}")
     private String backendUrl;
 
+    @Transactional
     public Response signUp(@Valid SignUpRequest request) throws MessagingException, IOException {
         Optional<User> existUser = userRepository.findByEmail(request.getEmail().toLowerCase());
 
@@ -67,7 +69,7 @@ public class UserService {
                 .fullName(request.getFullName())
                 .email(request.getEmail().toLowerCase())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(RoleType.MEMBER)
+                .role(RoleType.MANAGER)
                 .isActive(true)
                 .isEnabled(false)
                 .isEmailVerified(false)
@@ -87,6 +89,7 @@ public class UserService {
     }
 
     // Verify user
+    @Transactional
     public void verifyUser(String token) throws MessagingException, IOException {
         User user = userRepository.findByVerificationToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_INVALID_VERIFICATION_TOKEN));
@@ -111,6 +114,7 @@ public class UserService {
     }
 
     //Resend Account Verification Email
+    @Transactional
     public Response resendVerificationCode(String email) throws MessagingException, IOException {
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_USER_NOT_FOUND));
@@ -134,6 +138,7 @@ public class UserService {
     }
 
     //Forgot Password - Send Reset Link
+    @Transactional
     public Response forgotPassword(String email) throws MessagingException, IOException {
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_USER_NOT_FOUND));
@@ -153,6 +158,7 @@ public class UserService {
     }
 
     //Reset Password - Handle New Password Submission
+    @Transactional
     public Response resetPassword(ResetPasswordRequest request) {
         User user = userRepository.findByVerificationToken(request.getToken())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_INVALID_VERIFICATION_TOKEN));
@@ -180,6 +186,7 @@ public class UserService {
     }
 
     // Sign in user
+    @Transactional
     public Response signIn(@Valid SignInRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -223,6 +230,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Response refreshToken(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
 
@@ -239,5 +247,16 @@ public class UserService {
                 "Token refreshed successfully",
                 Map.of("accessToken", newAccessToken)
         );
+    }
+
+    @Transactional
+    public void logout(String username) {
+
+        var user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+         user.setRefreshToken(null);
+         userRepository.save(user);
+        log.info("User {} logged out and refresh token invalidated.", username);
     }
 }

@@ -10,11 +10,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -86,5 +91,25 @@ public class AuthController {
     @PostMapping("/refresh-token")
     public ResponseEntity<Response> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok().body(userService.refreshToken(request));
+    }
+
+    @Operation(summary = "User Logout", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
+    @PostMapping("/logout")
+    public ResponseEntity<Response> logout(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication
+    ) {
+        if (authentication != null) {
+            userService.logout(authentication.getName()); //getName() returns email
+        }
+
+        SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+        logoutHandler.logout(request, response, authentication);
+
+        return ResponseEntity.ok(
+                Response.getResponseEntity(true, "Logged out successfully", null)
+        );
     }
 }
