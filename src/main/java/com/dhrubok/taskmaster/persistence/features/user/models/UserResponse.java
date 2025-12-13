@@ -7,13 +7,14 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserResponse {
     private String userId;
     private String username;
     private String email;
     private String fullName;
+    private String phoneNumber;
     private String role;
     private String profileImage;
     private Boolean isActive;

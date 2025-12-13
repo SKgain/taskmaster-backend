@@ -20,12 +20,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
+import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
+
 @RestController
 @RequestMapping("/api/manager")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Manager Operations", description = "Manager-only endpoints for member management")
-@SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = JWT_TOKEN)
 public class ManagerController {
 
     private final MemberManagementService memberService;

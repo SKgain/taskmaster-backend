@@ -9,7 +9,7 @@ public final class SecurityConstant {
     );
 
     public static final String JWT_ALGORITHM = "HmacSHA256";
-    public static final long JWT_EXPIRATION_MILLIS = 1000 * 60 * 15; // Access Token = 15 Minutes
+    public static final long JWT_EXPIRATION_MILLIS = 1000 * 60 * 60; // Access Token = 60 Minutes
     public static final long REFRESH_EXPIRATION_MILLIS = 1000 * 60 * 60 * 24 * 7; // Refresh Token = 7 Days
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
@@ -21,6 +21,7 @@ public final class SecurityConstant {
             "/api/auth/resend-verification",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
+            "/api/uploads/**",
             "/public/**",
             "/swagger-ui/**",
             "/v3/api-docs/**"
@@ -30,4 +31,5 @@ public final class SecurityConstant {
     public static final String VERIFICATION_URL2 = "/api/auth/verify?token=";
     public static final String DASHBOARD_URL = "http://localhost:8080/dashboard";
     public static final String RESET_PASSWORD_URL = "/reset-password?token=";
+    public static final String JWT_TOKEN = "bearerAuth";
 }

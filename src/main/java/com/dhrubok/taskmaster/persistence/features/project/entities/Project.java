@@ -1,21 +1,20 @@
 package com.dhrubok.taskmaster.persistence.features.project.entities;
 
 import com.dhrubok.taskmaster.common.entities.AuditModel;
-import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import com.dhrubok.taskmaster.persistence.features.project.enums.ProjectStatus;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "projects")
 @Data
-@EqualsAndHashCode(callSuper = true) // Important for entities extending a mapped superclass
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Project extends AuditModel {
-
-    // Note: ID, created_at, updated_at are inherited from AuditModel
 
     @Column(nullable = false)
     private String projectName;
@@ -29,5 +28,6 @@ public class Project extends AuditModel {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
+    @Builder.Default
     private ProjectStatus status = ProjectStatus.ACTIVE;
 }
