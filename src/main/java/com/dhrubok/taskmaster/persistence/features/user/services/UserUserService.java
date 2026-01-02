@@ -78,8 +78,6 @@ public class UserUserService {
 
     @Transactional
     public UserResponse uploadProfilePhoto(String email, MultipartFile file) throws IOException {
-        log.info("Uploading profile photo for user: {}", email);
-
         // Validate file
         fileStorageService.validateImageFile(file);
 
@@ -90,7 +88,6 @@ public class UserUserService {
         if (user.getProfileImage() != null && user.getProfileImage().startsWith("/uploads")) {
             try {
                 fileStorageService.deleteFile(user.getProfileImage());
-                log.info("Deleted old profile photo: {}", user.getProfileImage());
             } catch (Exception e) {
                 log.warn("Failed to delete old profile photo: {}", e.getMessage());
             }
@@ -184,11 +181,20 @@ public class UserUserService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
-                .phoneNumber(user.getPhoneNumber())  // ✅ Added this
+                .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole().name())
-                .profileImage(user.getProfileImage())
+                .profileImage(buildFullImageUrl(user.getProfileImage()))
                 .isActive(user.getIsActive())
                 .isEmailVerified(user.getIsEmailVerified())
                 .build();
+    }
+
+    private String buildFullImageUrl(String relativePath) {
+        if (relativePath == null || relativePath.isEmpty()) {
+            return null;
+        }
+        // Remove leading slash if present
+        String path = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
+        return "http://localhost:8080/api/" + path;
     }
 }

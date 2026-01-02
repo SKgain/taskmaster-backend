@@ -122,6 +122,18 @@ public class ManagerController {
         );
     }
 
+    @Operation(summary = "Reactivate a member")
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @PreAuthorize("hasRole('MANAGER')")
+    @PutMapping("/members/{memberId}")
+    public ResponseEntity<Response> reactivateMember(Authentication authentication, @PathVariable String memberId) {
+        memberService.reactivateMember(authentication.getName(), memberId);
+
+        return ResponseEntity.ok(
+                Response.getResponseEntity(true, "Member reactivated successfully", null)
+        );
+    }
+
     @Operation(summary = "Resend verification email")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")

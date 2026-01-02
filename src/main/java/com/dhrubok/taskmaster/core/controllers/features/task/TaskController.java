@@ -1,9 +1,12 @@
 package com.dhrubok.taskmaster.core.controllers.features.task;
 
 import com.dhrubok.taskmaster.common.models.Response;
+import com.dhrubok.taskmaster.persistence.features.task.entities.TaskActivity;
 import com.dhrubok.taskmaster.persistence.features.task.models.CreateTaskRequest;
+import com.dhrubok.taskmaster.persistence.features.task.models.TaskActivityResponse;
 import com.dhrubok.taskmaster.persistence.features.task.models.UpdateTaskRequest;
 import com.dhrubok.taskmaster.persistence.features.task.models.UpdateTaskStatusRequest;
+import com.dhrubok.taskmaster.persistence.features.task.services.TaskActivityService;
 import com.dhrubok.taskmaster.persistence.features.task.services.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +22,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
 
 @RestController
@@ -28,8 +34,8 @@ import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
 @Tag(name = "Task Management", description = "Task CRUD and assignment operations")
 @SecurityRequirement(name = JWT_TOKEN)
 public class TaskController {
-
     private final TaskService taskService;
+    private  final TaskActivityService activityService;
 
     @Operation(summary = "Create a new task (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
@@ -241,6 +247,20 @@ public class TaskController {
                         "Search results for: " + query,
                         taskService.searchTasks(authentication.getName(), query)
                 )
+        );
+    }
+
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = TaskActivityResponse.class)))
+    @GetMapping("/{taskId}/activities")
+    public ResponseEntity<Response> getTaskActivities(@PathVariable String taskId) {
+
+        List<TaskActivity> activities = activityService.getTaskActivities(taskId);
+        List<TaskActivityResponse> response = activities.stream()
+                .map(activityService::totaskActivityResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(
+                Response.getResponseEntity(true, "Activities retrieved", response)
         );
     }
 }

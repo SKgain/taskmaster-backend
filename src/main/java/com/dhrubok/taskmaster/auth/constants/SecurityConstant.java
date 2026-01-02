@@ -24,7 +24,10 @@ public final class SecurityConstant {
             "/api/uploads/**",
             "/public/**",
             "/swagger-ui/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/api/ws/**",
+            "/topic/**",
+            "/app/**"
     };
 
     public static final String VERIFICATION_URL = "http://localhost:8080/api/auth/verify?token=";

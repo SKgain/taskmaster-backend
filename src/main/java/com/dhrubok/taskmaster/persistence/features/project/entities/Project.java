@@ -15,6 +15,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Project extends AuditModel {
+    @Column(name = "manager_username")
+    private String managerUsername;
 
     @Column(nullable = false)
     private String projectName;

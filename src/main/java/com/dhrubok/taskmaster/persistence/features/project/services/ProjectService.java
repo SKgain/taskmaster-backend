@@ -48,6 +48,7 @@ public class ProjectService {
         Project project = Project.builder()
                 .projectName(request.getProjectName())
                 .description(request.getDescription())
+                .managerUsername(managerEmail)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .status(ProjectStatus.ACTIVE)
@@ -77,7 +78,7 @@ public class ProjectService {
 
         if (user.getRole() == RoleType.MANAGER) {
             // Manager sees all projects
-            return projectRepository.findAll().stream()
+            return projectRepository.findAllByCreatedBy(email).stream()
                     .map(this::mapToProjectResponse)
                     .collect(Collectors.toList());
         } else {
@@ -309,8 +310,8 @@ public class ProjectService {
                 .startDate(project.getStartDate())
                 .endDate(project.getEndDate())
                 .status(project.getStatus().name())
-                .createdAt(project.getCreationDate())
-                .updatedAt(project.getLastModifiedDate())
+                .createdAt(project.getCreatedAt())
+                .updatedAt(project.getUpdatedAt())
                 .build();
     }
 

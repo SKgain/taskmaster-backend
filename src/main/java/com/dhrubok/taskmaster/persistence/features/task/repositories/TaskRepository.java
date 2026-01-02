@@ -42,4 +42,15 @@ public interface TaskRepository extends JpaRepository<Task, String> {
     Long countByProjectAndStatusTodo(@Param("project") Project project);
 
     Long countByDueDateBeforeAndStatusNot(LocalDate date, TaskStatus status);
+
+    List<Task> findByAssignedToId(String userId);
+
+    List<Task> findByAssignedToIdAndStatusIn(String userId, List<TaskStatus> statuses);
+
+    List<Task> findByProjectId(String projectId);
+
+    List<Task> findByProjectIdIn(List<String> projectIds);
+
+    @Query("SELECT t FROM Task t WHERE t.project.id IN :projectIds")
+    List<Task> findAllByProjectIds(@Param("projectIds") List<String> projectIds);
 }

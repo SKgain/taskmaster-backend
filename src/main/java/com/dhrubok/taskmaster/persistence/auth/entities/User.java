@@ -1,6 +1,8 @@
 package com.dhrubok.taskmaster.persistence.auth.entities;
 
 import com.dhrubok.taskmaster.persistence.auth.enums.RoleType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
     @Id
     @Column(name = "user_id", updatable = false, nullable = false, length = 36)
@@ -28,6 +31,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore // STOP password from leaking to frontend
     private String password;
 
     @Column(name = "full_name", nullable = false)
@@ -41,13 +45,16 @@ public class User {
     private RoleType role = RoleType.MEMBER;
 
     @Column(name = "profile_image")
-    private String profileImage; // URL
+    private String profileImage;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
+    @Column(name = "created_by")
+    private String createdBy;
 
     @Column(name = "updated_at")
     private Instant updatedAt;
@@ -59,12 +66,15 @@ public class User {
     private Boolean isEmailVerified = false;
 
     @Column(name = "verification_token")
+    @JsonIgnore // Security fix
     private String verificationToken;
 
     @Column(name = "token_expiry_date")
+    @JsonIgnore // Security fix
     private Instant tokenExpiryDate;
 
     @Column(name = "refresh_token")
+    @JsonIgnore // Security fix
     private String refreshToken;
 
     @PrePersist

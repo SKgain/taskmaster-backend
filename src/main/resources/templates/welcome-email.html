@@ -1,44 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to TaskMaster</title>
+    <style>
+        /* Base Resets */
+        body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f4f6f8; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+
+        /* Mobile Responsiveness */
+        @media screen and (max-width: 600px) {
+            .email-container { width: 100% !important; padding: 0 15px !important; }
+            .content-padding { padding: 30px 20px !important; }
+            .header-text { font-size: 24px !important; }
+        }
+    </style>
 </head>
+<body style="margin: 0; padding: 40px 0; background-color: #f4f6f8;">
 
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
-
-<table width="100%" style="max-width:600px;margin:auto;background:white;border-radius:8px;padding:20px;">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
-        <td style="text-align:center;padding:20px 0;">
-            <h2 style="color:#4CAF50;margin:0;">Welcome to TaskMaster 🎉</h2>
-            <p style="color:#777;font-size:14px;margin-top:5px;">Your productivity journey begins!</p>
-        </td>
-    </tr>
+        <td align="center">
 
-    <tr>
-        <td style="padding:20px;">
-            <p style="font-size:16px;color:#555;line-height:1.6;">
-                Hello,
-                Thank you for joining <strong>TaskMaster</strong>!
-                We’re excited to help you work smarter, faster, and better.
-            </p>
+            <table class="email-container" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden;">
 
-            <p style="color:#555;">
-                You can now create tasks, manage teams, set due dates, and more.
-            </p>
+                <tr>
+                    <td align="center" style="background-color: #ffffff; padding: 40px 0 20px 0; border-bottom: 2px solid #f0f0f0;">
+                        <h1 class="header-text" style="margin: 0; color: #4CAF50; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; font-family: Arial, sans-serif;">
+                            TaskMaster
+                        </h1>
+                        <p style="margin: 5px 0 0; color: #9aa0a6; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                            Your productivity journey begins!
+                        </p>
+                    </td>
+                </tr>
 
-            <div style="text-align:center;margin:30px 0;">
-                <a href="{{DASHBOARD_URL}}"
-                   style="background:#4CAF50;color:white;padding:12px 24px;text-decoration:none;
-                          font-size:16px;border-radius:6px;display:inline-block;">
-                    Go to Dashboard
-                </a>
-            </div>
+                <tr>
+                    <td class="content-padding" style="padding: 40px 50px;">
 
-            <p style="color:#999;font-size:12px;text-align:center;margin-top:20px;">
-                If you have questions, reply to this email anytime.
-            </p>
+                        <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 700;">
+                            Welcome to TaskMaster 🎉
+                        </h2>
+
+                        <p style="margin: 0 0 25px; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                            Hello there,
+                        </p>
+                        <p style="margin: 0 0 25px; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                            Thank you for joining <strong>TaskMaster</strong>! We’re excited to have you on board.
+                        </p>
+                        <p style="margin: 0 0 35px; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                            You can now create tasks, manage teams, set due dates, and collaborate effortlessly. Click the button below to jump straight into your dashboard.
+                        </p>
+
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                                <td align="center">
+                                    <a href="{{DASHBOARD_URL}}" target="_blank"
+                                       style="display: inline-block; background-color: #4CAF50; color: #ffffff;
+                                                  font-size: 16px; font-weight: bold; text-decoration: none;
+                                                  padding: 14px 32px; border-radius: 8px; box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3);">
+                                        Go to Dashboard
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div style="margin-top: 40px; border-top: 1px solid #f0f0f0; padding-top: 25px;">
+                            <p style="margin: 0 0 10px; color: #718096; font-size: 13px;">
+                                Button not working? Copy and paste this link into your browser:
+                            </p>
+                            <div style="background-color: #f8fafc; padding: 12px; border-radius: 6px; word-break: break-all;">
+                                <a href="{{DASHBOARD_URL}}" style="color: #4CAF50; font-size: 13px; text-decoration: none; line-height: 1.4;">
+                                    {{DASHBOARD_URL}}
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="background-color: #f9fafb; padding: 30px 40px; text-align: center; border-top: 1px solid #eaeaea;">
+                        <p style="margin: 0 0 10px; color: #9aa0a6; font-size: 12px; line-height: 1.5;">
+                            If you have any questions, you can reply directly to this email.<br>
+                            We're here to help you work smarter.
+                        </p>
+                        <p style="margin: 15px 0 0; color: #cbd5e0; font-size: 12px; font-weight: 500;">
+                            &copy; 2024 TaskMaster. All rights reserved.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td height="40" style="font-size: 40px; line-height: 40px;">&nbsp;</td>
+                </tr>
+            </table>
+
         </td>
     </tr>
 </table>

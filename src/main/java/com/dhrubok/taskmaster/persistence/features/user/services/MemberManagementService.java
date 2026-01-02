@@ -80,6 +80,7 @@ public class MemberManagementService {
                 .role(RoleType.MEMBER)
                 .isActive(true)
                 .isEnabled(false)
+                .createdBy(managerEmail)
                 .isEmailVerified(false)
                 .verificationToken(UUID.randomUUID().toString())
                 .tokenExpiryDate(Instant.now().plusSeconds(7 * 24 * 3600))
@@ -116,7 +117,7 @@ public class MemberManagementService {
             throw new ApplicationException("Only MANAGER can view members");
         }
 
-        List<User> members = userRepository.findByRole(RoleType.MEMBER);
+        List<User> members = userRepository.findByRoleAndCreatedBy(RoleType.MEMBER, managerEmail);
         log.info("Found {} members", members.size());
 
         return members.stream()
@@ -135,7 +136,7 @@ public class MemberManagementService {
             throw new ApplicationException("Only MANAGER can view members");
         }
 
-        List<User> activeMembers = userRepository.findByRoleAndIsActiveTrue(RoleType.MEMBER);
+        List<User> activeMembers = userRepository.findByRoleAndIsActiveTrueAndCreatedBy(RoleType.MEMBER, managerEmail);
         log.info("Found {} active members", activeMembers.size());
 
         return activeMembers.stream()

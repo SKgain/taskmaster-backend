@@ -5,6 +5,7 @@ import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import com.dhrubok.taskmaster.persistence.features.project.entities.Project;
 import com.dhrubok.taskmaster.persistence.features.task.enums.Priority;
 import com.dhrubok.taskmaster.persistence.features.task.enums.TaskStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,9 +40,13 @@ public class Task extends AuditModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
+    // FIX 1: Ignore Hibernate Proxy fields to prevent 500 Error
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to", nullable = false)
+    // FIX 2: Ignore Proxy fields AND password/tokens to prevent Recursion & Security leaks
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "verificationToken", "refreshToken"})
     private User assignedTo;
 }

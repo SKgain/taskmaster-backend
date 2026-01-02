@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.common.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,30 +20,36 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @MappedSuperclass
+@JsonIgnoreProperties(
+        value = {"createdAt", "updatedAt", "createdBy", "updatedBy"},
+        allowGetters = true
+)
 @EntityListeners(AuditingEntityListener.class)
 public abstract class AuditModel implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreatedDate
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    @LastModifiedDate
+    private Instant updatedAt;
+
+    @Column(name = "created_by", updatable = false)
     @CreatedBy
-    @Column(nullable = false, updatable = false)
     private String createdBy;
 
+    @Column(name = "updated_by")
     @LastModifiedBy
-    private String lastModifiedBy;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant creationDate;
-
-    @LastModifiedDate
-    private Instant lastModifiedDate;
+    private String updatedBy;
 
     @PrePersist
     public void prePersist() {
-        if (this.creationDate == null) {
-            this.creationDate = Instant.now();
+        if (this.createdAt == null) {
+            this.createdAt = Instant.now();
         }
     }
 }

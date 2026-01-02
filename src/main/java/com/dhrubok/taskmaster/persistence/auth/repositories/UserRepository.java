@@ -5,6 +5,7 @@ import com.dhrubok.taskmaster.persistence.auth.enums.RoleType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+
 import java.util.List;
 import java.util.Optional;
 
@@ -26,4 +27,12 @@ public interface UserRepository extends JpaRepository<User, String> {
     Long countByRole(RoleType role);
 
     boolean existsByEmail(String email);
+
+    Optional<User> findByUsername(String managerUsername);
+
+    Long countByRoleAndIsActiveTrue(RoleType role);
+
+    List<User> findByRoleAndCreatedBy(RoleType roleType, String managerEmail);
+
+    List<User> findByRoleAndIsActiveTrueAndCreatedBy(RoleType roleType, String managerEmail);
 }

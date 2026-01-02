@@ -27,8 +27,8 @@ public class UserSettingsResponse {
                 .emailNotifications(settings.getEmailNotifications())
                 .taskReminders(settings.getTaskReminders())
                 .reminderHours(settings.getReminderHours())
-                .creationDate(settings.getCreationDate())
-                .lastModifiedDate(settings.getLastModifiedDate())
+                .creationDate(settings.getCreatedAt())
+                .lastModifiedDate(settings.getUpdatedAt())
                 .build();
     }
 }

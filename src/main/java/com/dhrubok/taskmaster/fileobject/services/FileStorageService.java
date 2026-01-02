@@ -30,7 +30,6 @@ public class FileStorageService {
         Path uploadPath = Paths.get(uploadDir, userId);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
-            log.info("Created directory: {}", uploadPath.toAbsolutePath());
         }
 
         // Generate unique filename
@@ -44,13 +43,8 @@ public class FileStorageService {
         Path targetLocation = uploadPath.resolve(filename);
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-        log.info("File stored successfully at: {}", targetLocation.toAbsolutePath());
-
         // Return the file URL path
-        String fileUrl = String.format("/uploads/profiles/%s/%s", userId, filename);
-        log.info("Generated file URL: {}", fileUrl);
-
-        return fileUrl;
+        return String.format("/uploads/profiles/%s/%s", userId, filename);
     }
 
     public void deleteFile(String fileUrl) {
@@ -68,7 +62,6 @@ public class FileStorageService {
                 }
             }
         } catch (IOException e) {
-            log.error("Failed to delete file: {}", fileUrl, e);
             throw new RuntimeException("Failed to delete file: " + fileUrl, e);
         }
     }

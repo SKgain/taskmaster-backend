@@ -10,6 +10,7 @@ import com.dhrubok.taskmaster.persistence.features.project.entities.Project;
 import com.dhrubok.taskmaster.persistence.features.project.repositories.ProjectRepository;
 import com.dhrubok.taskmaster.persistence.features.projectmember.repositories.ProjectMemberRepository;
 import com.dhrubok.taskmaster.persistence.features.task.entities.Task;
+import com.dhrubok.taskmaster.persistence.features.task.enums.ActivityType;
 import com.dhrubok.taskmaster.persistence.features.task.enums.Priority;
 import com.dhrubok.taskmaster.persistence.features.task.enums.TaskStatus;
 import com.dhrubok.taskmaster.persistence.features.task.models.CreateTaskRequest;
@@ -40,6 +41,7 @@ public class TaskService {
     private final ProjectMemberRepository projectMemberRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final TaskActivityService activityService;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -162,10 +164,11 @@ public class TaskService {
     public TaskResponse updateTask(String managerEmail, String taskId, UpdateTaskRequest request) {
         log.info("Manager {} updating task: {}", managerEmail, taskId);
 
-        User manager = userRepository.findByEmail(managerEmail.toLowerCase())
+        User user = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
 
-        if (manager.getRole() != RoleType.MANAGER) {
+
+        if (user.getRole() != RoleType.MANAGER) {
             throw new ApplicationException("Only MANAGER can update tasks");
         }
 
@@ -192,6 +195,22 @@ public class TaskService {
             if (request.getStatus() == TaskStatus.COMPLETED) {
                 task.setCompletedAt(Instant.now());
             }
+        }
+
+        // Track changes and log activities
+        if (!task.getStatus().equals(request.getStatus())) {
+            activityService.logActivity(task, user, ActivityType.STATUS_CHANGED,
+                    "status", task.getStatus().toString(), request.getStatus().toString());
+        }
+
+        if (!task.getPriority().equals(request.getPriority())) {
+            activityService.logActivity(task, user, ActivityType.PRIORITY_CHANGED,
+                    "priority", task.getPriority().toString(), request.getPriority().toString());
+        }
+
+        if (request.getDueDate() != null && !request.getDueDate().equals(task.getDueDate())) {
+            activityService.logActivity(task, user, ActivityType.DUE_DATE_CHANGED,
+                    "dueDate", task.getDueDate().toString(), request.getDueDate().toString());
         }
 
         taskRepository.save(task);
@@ -381,8 +400,8 @@ public class TaskService {
                 .projectName(task.getProject().getProjectName())
                 .assignedToId(task.getAssignedTo().getId())
                 .assignedToName(task.getAssignedTo().getFullName())
-                .createdAt(task.getCreationDate())
-                .updatedAt(task.getLastModifiedDate())
+                .createdAt(task.getCreatedAt())
+                .updatedAt(task.getUpdatedAt())
                 .build();
     }
 

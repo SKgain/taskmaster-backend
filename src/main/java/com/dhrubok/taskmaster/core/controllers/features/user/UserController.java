@@ -1,7 +1,6 @@
 package com.dhrubok.taskmaster.core.controllers.features.user;
 
 import com.dhrubok.taskmaster.common.models.Response;
-
 import com.dhrubok.taskmaster.persistence.auth.models.ChangePasswordRequest;
 import com.dhrubok.taskmaster.persistence.features.user.models.UpdateProfileRequest;
 import com.dhrubok.taskmaster.persistence.features.user.models.UserResponse;
@@ -92,6 +91,35 @@ public class UserController {
         return ResponseEntity.ok(
                 Response.getResponseEntity(true, "Password changed successfully", null)
         );
+    }
+
+    // ========================================
+    // 🆕 NEW ENDPOINT - GET ALL USERS
+    // ========================================
+    @Operation(summary = "Get all users (for project member assignment)")
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @GetMapping
+    public ResponseEntity<Response> getAllUsers(Authentication authentication) {
+        log.info("GET /api/users - Requested by: {}", authentication.getName());
+
+        try {
+            return ResponseEntity.ok(
+                    Response.getResponseEntity(
+                            true,
+                            "Users retrieved successfully",
+                            userService.getAllActiveUsers()
+                    )
+            );
+        } catch (Exception e) {
+            log.error("Error retrieving all users: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(
+                    Response.getResponseEntity(
+                            false,
+                            "Failed to retrieve users: " + e.getMessage(),
+                            null
+                    )
+            );
+        }
     }
 
     @Operation(summary = "Get user by ID")
