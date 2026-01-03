@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Invitation</title>
+    <style>
+        /* Base Resets */
+        body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f4f6f8; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+
+        /* Mobile Responsiveness */
+        @media screen and (max-width: 600px) {
+            .email-container { width: 100% !important; padding: 0 15px !important; }
+            .content-padding { padding: 30px 20px !important; }
+            .header-text { font-size: 24px !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 40px 0; background-color: #f4f6f8;">
+
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td align="center">
+
+            <table class="email-container" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden;">
+
+                <tr>
+                    <td align="center" style="background-color: #ffffff; padding: 40px 0 20px 0; border-bottom: 2px solid #f0f0f0;">
+                        <h1 class="header-text" style="margin: 0; color: #4CAF50; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; font-family: Arial, sans-serif;">
+                            TaskMaster
+                        </h1>
+                        <p style="margin: 5px 0 0; color: #9aa0a6; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                            New Event
+                        </p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="content-padding" style="padding: 40px 50px;">
+
+                        <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 700;">
+                            New Meeting Scheduled
+                        </h2>
+
+                        <p style="margin: 0 0 25px; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                            You have been invited to a new meeting. Please mark your calendar.
+                        </p>
+
+                        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td style="padding-bottom: 10px; font-size: 14px; color: #718096; font-weight: 600; text-transform: uppercase;">Topic</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 20px; font-size: 18px; color: #2d3748; font-weight: 700;">{{MEETING_TITLE}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 5px; font-size: 14px; color: #718096;">Date & Time: <strong style="color: #4a4a4a;">{{SCHEDULED_TIME}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 5px; font-size: 14px; color: #718096;">Duration: <strong style="color: #4a4a4a;">{{DURATION}} Minutes</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 5px; font-size: 14px; color: #718096;">Organizer: <strong style="color: #4a4a4a;">{{ORGANIZER}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 14px; color: #718096;">Location/Link: <strong style="color: #4CAF50;">{{LOCATION_OR_LINK}}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                                <td align="center">
+                                    <a href="{{JOIN_LINK}}" target="_blank"
+                                       style="display: inline-block; background-color: #4CAF50; color: #ffffff;
+                                                  font-size: 16px; font-weight: bold; text-decoration: none;
+                                                  padding: 14px 32px; border-radius: 8px; box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3);">
+                                        Join / View Meeting
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div style="margin-top: 40px; border-top: 1px solid #f0f0f0; padding-top: 25px;">
+                            <p style="margin: 0 0 10px; color: #718096; font-size: 13px;">
+                                Button not working? Copy and paste this link into your browser:
+                            </p>
+                            <div style="background-color: #f8fafc; padding: 12px; border-radius: 6px; word-break: break-all;">
+                                <a href="{{JOIN_LINK}}" style="color: #4CAF50; font-size: 13px; text-decoration: none; line-height: 1.4;">
+                                    {{JOIN_LINK}}
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="background-color: #f9fafb; padding: 30px 40px; text-align: center; border-top: 1px solid #eaeaea;">
+                        <p style="margin: 0 0 10px; color: #9aa0a6; font-size: 12px; line-height: 1.5;">
+                            Please ensure you are prepared before the meeting starts.
+                        </p>
+                        <p style="margin: 15px 0 0; color: #cbd5e0; font-size: 12px; font-weight: 500;">
+                            &copy; 2024 TaskMaster. All rights reserved.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td height="40" style="font-size: 40px; line-height: 40px;">&nbsp;</td>
+                </tr>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

@@ -126,4 +126,28 @@ public class EmailService {
                 )
         );
     }
+
+    // Meeting Invitation Email
+    public void sendMeetingInvitationEmail(String recipientEmail,
+                                           String title,
+                                           String scheduledTime,
+                                           String duration,
+                                           String organizer,
+                                           String locationOrLink,
+                                           String joinLink) throws MessagingException, IOException {
+
+        sendHtmlEmail(
+                recipientEmail,
+                "Invitation: " + title,
+                "meeting-invitation.html", // Make sure file is in src/main/resources/templates/
+                Map.of(
+                        "{{MEETING_TITLE}}", title,
+                        "{{SCHEDULED_TIME}}", scheduledTime,
+                        "{{DURATION}}", duration,
+                        "{{ORGANIZER}}", organizer,
+                        "{{LOCATION_OR_LINK}}", locationOrLink,
+                        "{{JOIN_LINK}}", joinLink
+                )
+        );
+    }
 }
