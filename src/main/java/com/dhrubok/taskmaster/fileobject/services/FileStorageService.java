@@ -19,12 +19,7 @@ public class FileStorageService {
     @Value("${file.upload-dir:uploads/profiles}")
     private String uploadDir;
 
-    /**
-     * Store uploaded file
-     * @param file - The multipart file to store
-     * @param userId - User ID to create subdirectory
-     * @return The URL path to access the stored file
-     */
+
     public String storeFile(MultipartFile file, String userId) throws IOException {
         // Create directory structure: uploads/profiles/{userId}/
         Path uploadPath = Paths.get(uploadDir, userId);
@@ -56,7 +51,6 @@ public class FileStorageService {
 
                 if (Files.exists(filePath)) {
                     Files.delete(filePath);
-                    log.info("File deleted successfully: {}", filePath.toAbsolutePath());
                 } else {
                     log.warn("File not found for deletion: {}", filePath.toAbsolutePath());
                 }

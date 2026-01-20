@@ -30,9 +30,9 @@ public final class SecurityConstant {
             "/app/**"
     };
 
-    public static final String VERIFICATION_URL = "http://localhost:8080/api/auth/verify?token=";
-    public static final String VERIFICATION_URL2 = "/api/auth/verify?token=";
+    public static final String VERIFICATION_URL2 = "http://localhost:8080/api/auth/verify?token=";
+    public static final String VERIFICATION_URL = "/verify.html?token=";
     public static final String DASHBOARD_URL = "http://localhost:8080/dashboard";
-    public static final String RESET_PASSWORD_URL = "/reset-password?token=";
-    public static final String JWT_TOKEN = "bearerAuth";
+    public static final String RESET_PASSWORD_URL = "/reset-password.html?token=";
+    public static final String JWT = "bearerAuth";
 }

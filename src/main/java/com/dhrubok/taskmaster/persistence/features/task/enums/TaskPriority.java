@@ -1,5 +1,5 @@
 package com.dhrubok.taskmaster.persistence.features.task.enums;
 
-public enum Priority {
+public enum TaskPriority {
     LOW, MEDIUM, HIGH, URGENT
 }

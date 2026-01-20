@@ -14,7 +14,7 @@ import com.dhrubok.taskmaster.persistence.features.projectmember.models.MemberPe
 import com.dhrubok.taskmaster.persistence.features.projectmember.models.MemberWorkloadResponse;
 import com.dhrubok.taskmaster.persistence.features.projectmember.repositories.ProjectMemberRepository;
 import com.dhrubok.taskmaster.persistence.features.task.entities.Task;
-import com.dhrubok.taskmaster.persistence.features.task.enums.Priority;
+import com.dhrubok.taskmaster.persistence.features.task.enums.TaskPriority;
 import com.dhrubok.taskmaster.persistence.features.task.enums.TaskStatus;
 import com.dhrubok.taskmaster.persistence.features.task.models.TaskStatisticsResponse;
 import com.dhrubok.taskmaster.persistence.features.task.repositories.TaskRepository;
@@ -41,13 +41,10 @@ public class ManagerAnalyticsService {
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
 
-    // ==================== DASHBOARD OVERVIEW ====================
-
     public ManagerDashboardResponse getDashboardOverview(String managerEmail) {
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
 
-        // FIX: Use findByManagerUsername (which stores email)
         List<Project> allProjects = projectRepository.findByManagerUsername(manager.getEmail());
 
         int totalProjects = allProjects.size();
@@ -98,13 +95,10 @@ public class ManagerAnalyticsService {
                 .build();
     }
 
-    // ==================== PROJECT PROGRESS ====================
-
     public List<ProjectProgressResponse> getProjectsProgress(String managerEmail) {
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
 
-        // FIX: Use findByManagerUsername (which stores email)
         List<Project> projects = projectRepository.findByManagerUsername(manager.getEmail());
 
         return projects.stream().map(this::calculateProjectProgress).collect(Collectors.toList());
@@ -156,28 +150,6 @@ public class ManagerAnalyticsService {
         return "ON_TRACK";
     }
 
-    // ==================== TASK DISTRIBUTION ====================
-
-    public Map<String, Integer> getTaskStatusDistribution(String managerEmail) {
-        User manager = userRepository.findByEmail(managerEmail.toLowerCase())
-                .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
-
-        // FIX: Use findByManagerUsername (which stores email)
-        List<Project> projects = projectRepository.findByManagerUsername(manager.getEmail());
-
-        List<String> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
-        List<Task> tasks = projectIds.isEmpty() ? Collections.emptyList() : taskRepository.findAllByProjectIds(projectIds);
-
-        Map<String, Integer> distribution = new HashMap<>();
-        distribution.put("TODO", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.TODO).count());
-        distribution.put("IN_PROGRESS", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS).count());
-        distribution.put("COMPLETED", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.COMPLETED).count());
-        distribution.put("CANCELLED", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.CANCELLED).count());
-        return distribution;
-    }
-
-    // ==================== MEMBER WORKLOAD ====================
-
     public List<MemberWorkloadResponse> getMemberWorkloads(String managerEmail) {
         List<User> members = userRepository.findByRoleAndIsActiveTrue(RoleType.MEMBER);
         return members.stream()
@@ -220,119 +192,6 @@ public class ManagerAnalyticsService {
                 .build();
     }
 
-    // ==================== MEMBER PERFORMANCE ====================
-
-    public List<MemberPerformanceResponse> getMemberPerformance(String managerEmail) {
-        List<User> members = userRepository.findByRoleAndIsActiveTrue(RoleType.MEMBER);
-        return members.stream()
-                .map(this::calculateMemberPerformance)
-                .sorted((a, b) -> Double.compare(b.getCompletionRate(), a.getCompletionRate()))
-                .collect(Collectors.toList());
-    }
-
-    private MemberPerformanceResponse calculateMemberPerformance(User member) {
-        List<Task> allTasks = taskRepository.findByAssignedToId(member.getId());
-        List<Task> completedTasks = allTasks.stream().filter(t -> t.getStatus() == TaskStatus.COMPLETED).toList();
-
-        int total = allTasks.size();
-        int completed = completedTasks.size();
-        double completionRate = total > 0 ? (completed * 100.0 / total) : 0;
-
-        int onTime = (int) completedTasks.stream().filter(t -> t.getCompletedAt() != null && t.getDueDate() != null &&
-                t.getCompletedAt().atZone(java.time.ZoneId.systemDefault()).toLocalDate().isBefore(t.getDueDate().plusDays(1))).count();
-        double onTimeRate = completed > 0 ? (onTime * 100.0 / completed) : 0;
-
-        int highPriority = (int) completedTasks.stream().filter(t -> t.getPriority() == Priority.HIGH).count();
-        int urgent = (int) completedTasks.stream().filter(t -> t.getPriority() == Priority.URGENT).count();
-
-        return MemberPerformanceResponse.builder()
-                .userId(member.getId())
-                .fullName(member.getFullName())
-                .email(member.getEmail())
-                .totalTasksAssigned(total)
-                .totalTasksCompleted(completed)
-                .completionRate(Math.round(completionRate * 10) / 10.0)
-                .tasksCompletedOnTime(onTime)
-                .onTimeCompletionRate(Math.round(onTimeRate * 10) / 10.0)
-                .highPriorityTasksCompleted(highPriority)
-                .urgentTasksCompleted(urgent)
-                .performanceTrend("STABLE")
-                .build();
-    }
-
-    // ==================== MEMBER AVAILABILITY ====================
-
-    public List<MemberAvailabilityResponse> getMemberAvailability(String managerEmail) {
-        List<User> members = userRepository.findByRoleAndIsActiveTrue(RoleType.MEMBER);
-        return members.stream()
-                .map(this::calculateMemberAvailability)
-                .sorted((a, b) -> Double.compare(a.getCapacityUtilization(), b.getCapacityUtilization()))
-                .collect(Collectors.toList());
-    }
-
-    private MemberAvailabilityResponse calculateMemberAvailability(User member) {
-        List<Task> activeTasks = taskRepository.findByAssignedToIdAndStatusIn(member.getId(), Arrays.asList(TaskStatus.TODO, TaskStatus.IN_PROGRESS));
-        int currentLoad = activeTasks.size();
-        double utilization = (currentLoad * 100.0) / DEFAULT_CAPACITY;
-
-        String status;
-        if (utilization >= 100) status = "OVERLOADED";
-        else if (utilization >= 75) status = "BUSY";
-        else if (utilization >= 40) status = "MODERATE";
-        else status = "AVAILABLE";
-
-        LocalDateTime nextAvailable = activeTasks.stream().map(Task::getDueDate).filter(Objects::nonNull).map(LocalDate::atStartOfDay).min(LocalDateTime::compareTo).orElse(LocalDateTime.now());
-
-        return MemberAvailabilityResponse.builder()
-                .userId(member.getId())
-                .fullName(member.getFullName())
-                .isAvailable(utilization < 75)
-                .availabilityStatus(status)
-                .currentTaskCount(currentLoad)
-                .maxCapacity(DEFAULT_CAPACITY)
-                .capacityUtilization(Math.round(utilization * 10) / 10.0)
-                .nextAvailableDate(nextAvailable)
-                .build();
-    }
-
-    // ==================== HELPERS ====================
-
-    private TaskStatisticsResponse getTaskStatistics(List<Task> tasks) {
-        Map<String, Integer> statusDist = new HashMap<>();
-        statusDist.put("TODO", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.TODO).count());
-        statusDist.put("IN_PROGRESS", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS).count());
-        statusDist.put("COMPLETED", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.COMPLETED).count());
-        statusDist.put("CANCELLED", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.CANCELLED).count());
-
-        Map<String, Integer> priorityDist = new HashMap<>();
-        priorityDist.put("LOW", (int) tasks.stream().filter(t -> t.getPriority() == Priority.LOW).count());
-        priorityDist.put("MEDIUM", (int) tasks.stream().filter(t -> t.getPriority() == Priority.MEDIUM).count());
-        priorityDist.put("HIGH", (int) tasks.stream().filter(t -> t.getPriority() == Priority.HIGH).count());
-        priorityDist.put("URGENT", (int) tasks.stream().filter(t -> t.getPriority() == Priority.URGENT).count());
-
-        LocalDate today = LocalDate.now();
-        LocalDate endOfWeek = today.plusDays(7);
-
-        return TaskStatisticsResponse.builder()
-                .totalTasks(tasks.size())
-                .todoTasks(statusDist.get("TODO"))
-                .inProgressTasks(statusDist.get("IN_PROGRESS"))
-                .completedTasks(statusDist.get("COMPLETED"))
-                .cancelledTasks(statusDist.get("CANCELLED"))
-                .lowPriorityTasks(priorityDist.get("LOW"))
-                .mediumPriorityTasks(priorityDist.get("MEDIUM"))
-                .highPriorityTasks(priorityDist.get("HIGH"))
-                .urgentTasks(priorityDist.get("URGENT"))
-                .overdueTasks((int) tasks.stream().filter(t -> t.getDueDate() != null && t.getDueDate().isBefore(today) && t.getStatus() != TaskStatus.COMPLETED).count())
-                .dueTodayTasks((int) tasks.stream().filter(t -> t.getDueDate() != null && t.getDueDate().equals(today)).count())
-                .dueThisWeekTasks((int) tasks.stream().filter(t -> t.getDueDate() != null && t.getDueDate().isAfter(today) && t.getDueDate().isBefore(endOfWeek)).count())
-                .statusDistribution(statusDist)
-                .priorityDistribution(priorityDist)
-                .build();
-    }
-
-// ==================== TASK PRIORITY ANALYSIS ====================
-
     public Map<String, Object> getTaskPriorityAnalysis(String managerEmail) {
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -343,12 +202,11 @@ public class ManagerAnalyticsService {
 
         Map<String, Object> analysis = new HashMap<>();
 
-        // Priority distribution
         Map<String, Integer> priorityDist = new HashMap<>();
-        priorityDist.put("LOW", (int) allTasks.stream().filter(t -> t.getPriority() == Priority.LOW && t.getStatus() != TaskStatus.COMPLETED).count());
-        priorityDist.put("MEDIUM", (int) allTasks.stream().filter(t -> t.getPriority() == Priority.MEDIUM && t.getStatus() != TaskStatus.COMPLETED).count());
-        priorityDist.put("HIGH", (int) allTasks.stream().filter(t -> t.getPriority() == Priority.HIGH && t.getStatus() != TaskStatus.COMPLETED).count());
-        priorityDist.put("URGENT", (int) allTasks.stream().filter(t -> t.getPriority() == Priority.URGENT && t.getStatus() != TaskStatus.COMPLETED).count());
+        priorityDist.put("LOW", (int) allTasks.stream().filter(t -> t.getTaskPriority() == TaskPriority.LOW && t.getStatus() != TaskStatus.COMPLETED).count());
+        priorityDist.put("MEDIUM", (int) allTasks.stream().filter(t -> t.getTaskPriority() == TaskPriority.MEDIUM && t.getStatus() != TaskStatus.COMPLETED).count());
+        priorityDist.put("HIGH", (int) allTasks.stream().filter(t -> t.getTaskPriority() == TaskPriority.HIGH && t.getStatus() != TaskStatus.COMPLETED).count());
+        priorityDist.put("URGENT", (int) allTasks.stream().filter(t -> t.getTaskPriority() == TaskPriority.URGENT && t.getStatus() != TaskStatus.COMPLETED).count());
 
         analysis.put("priorityDistribution", priorityDist);
         analysis.put("totalActiveTasks", priorityDist.values().stream().mapToInt(Integer::intValue).sum());
@@ -357,52 +215,6 @@ public class ManagerAnalyticsService {
 
         return analysis;
     }
-
-// ==================== TASK COMPLETION TREND (Last 7 Days) ====================
-
-    public Map<String, Object> getTaskCompletionTrend(String managerEmail) {
-        User manager = userRepository.findByEmail(managerEmail.toLowerCase())
-                .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
-
-        List<Project> projects = projectRepository.findByManagerUsername(manager.getEmail());
-        List<String> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
-        List<Task> completedTasks = projectIds.isEmpty() ? Collections.emptyList() :
-                taskRepository.findAllByProjectIds(projectIds).stream()
-                        .filter(t -> t.getStatus() == TaskStatus.COMPLETED && t.getCompletedAt() != null)
-                        .collect(Collectors.toList());
-
-        Map<String, Object> trend = new HashMap<>();
-        Map<String, Integer> dailyCompletion = new LinkedHashMap<>(); // Use LinkedHashMap to maintain order
-
-        LocalDate today = LocalDate.now();
-        for (int i = 6; i >= 0; i--) {
-            LocalDate date = today.minusDays(i);
-            String dateKey = date.toString();
-
-            int count = (int) completedTasks.stream()
-                    .filter(t -> {
-                        // Convert Instant to LocalDate using system default timezone
-                        LocalDate completedDate = t.getCompletedAt()
-                                .atZone(java.time.ZoneId.systemDefault())
-                                .toLocalDate();
-                        return completedDate.equals(date);
-                    })
-                    .count();
-
-            dailyCompletion.put(dateKey, count);
-        }
-
-        trend.put("dailyCompletion", dailyCompletion);
-        trend.put("weekTotal", dailyCompletion.values().stream().mapToInt(Integer::intValue).sum());
-        trend.put("averagePerDay", dailyCompletion.values().stream()
-                .mapToInt(Integer::intValue)
-                .average()
-                .orElse(0.0));
-
-        return trend;
-    }
-
-// ==================== UPCOMING DEADLINES ====================
 
     public List<Map<String, Object>> getUpcomingDeadlines(String managerEmail) {
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
@@ -430,7 +242,7 @@ public class ManagerAnalyticsService {
                     taskInfo.put("projectName", task.getProject().getProjectName());
                     taskInfo.put("assignedTo", task.getAssignedTo().getFullName());
                     taskInfo.put("dueDate", task.getDueDate());
-                    taskInfo.put("priority", task.getPriority().toString());
+                    taskInfo.put("priority", task.getTaskPriority().toString());
                     taskInfo.put("status", task.getStatus().toString());
                     taskInfo.put("daysUntilDue", ChronoUnit.DAYS.between(today, task.getDueDate()));
                     return taskInfo;
@@ -438,128 +250,39 @@ public class ManagerAnalyticsService {
                 .collect(Collectors.toList());
     }
 
-// ==================== TOP PERFORMERS ====================
+    // ==================== HELPERS ====================
 
-    public List<Map<String, Object>> getTopPerformers(String managerEmail) {
-        List<MemberPerformanceResponse> performance = getMemberPerformance(managerEmail);
+    private TaskStatisticsResponse getTaskStatistics(List<Task> tasks) {
+        Map<String, Integer> statusDist = new HashMap<>();
+        statusDist.put("TODO", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.TODO).count());
+        statusDist.put("IN_PROGRESS", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS).count());
+        statusDist.put("COMPLETED", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.COMPLETED).count());
+        statusDist.put("CANCELLED", (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.CANCELLED).count());
 
-        return performance.stream()
-                .limit(5)
-                .map(member -> {
-                    Map<String, Object> performer = new HashMap<>();
-                    performer.put("userId", member.getUserId());
-                    performer.put("fullName", member.getFullName());
-                    performer.put("completionRate", member.getCompletionRate());
-                    performer.put("totalCompleted", member.getTotalTasksCompleted());
-                    performer.put("onTimeRate", member.getOnTimeCompletionRate());
-                    return performer;
-                })
-                .collect(Collectors.toList());
-    }
-
-// ==================== TASK AGING ANALYSIS ====================
-
-    public Map<String, Object> getTaskAgingAnalysis(String managerEmail) {
-        User manager = userRepository.findByEmail(managerEmail.toLowerCase())
-                .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
-
-        List<Project> projects = projectRepository.findByManagerUsername(manager.getEmail());
-        List<String> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
-        List<Task> activeTasks = projectIds.isEmpty() ? Collections.emptyList() :
-                taskRepository.findAllByProjectIds(projectIds).stream()
-                        .filter(t -> t.getStatus() != TaskStatus.COMPLETED && t.getStatus() != TaskStatus.CANCELLED)
-                        .collect(Collectors.toList());
+        Map<String, Integer> priorityDist = new HashMap<>();
+        priorityDist.put("LOW", (int) tasks.stream().filter(t -> t.getTaskPriority() == TaskPriority.LOW).count());
+        priorityDist.put("MEDIUM", (int) tasks.stream().filter(t -> t.getTaskPriority() == TaskPriority.MEDIUM).count());
+        priorityDist.put("HIGH", (int) tasks.stream().filter(t -> t.getTaskPriority() == TaskPriority.HIGH).count());
+        priorityDist.put("URGENT", (int) tasks.stream().filter(t -> t.getTaskPriority() == TaskPriority.URGENT).count());
 
         LocalDate today = LocalDate.now();
+        LocalDate endOfWeek = today.plusDays(7);
 
-        Map<String, Object> aging = new HashMap<>();
-
-        int lessThan3Days = 0;
-        int between3And7Days = 0;
-        int between7And14Days = 0;
-        int moreThan14Days = 0;
-
-        for (Task task : activeTasks) {
-            long daysOld = ChronoUnit.DAYS.between(task.getCreatedAt(), today);
-
-            if (daysOld < 3) lessThan3Days++;
-            else if (daysOld < 7) between3And7Days++;
-            else if (daysOld < 14) between7And14Days++;
-            else moreThan14Days++;
-        }
-
-        aging.put("lessThan3Days", lessThan3Days);
-        aging.put("between3And7Days", between3And7Days);
-        aging.put("between7And14Days", between7And14Days);
-        aging.put("moreThan14Days", moreThan14Days);
-        aging.put("totalActiveTasks", activeTasks.size());
-
-        return aging;
-    }
-
-// ==================== PROJECT HEALTH SUMMARY ====================
-
-    public Map<String, Object> getProjectHealthSummary(String managerEmail) {
-        List<ProjectProgressResponse> projects = getProjectsProgress(managerEmail);
-
-        Map<String, Object> summary = new HashMap<>();
-
-        int onTrack = (int) projects.stream().filter(p -> p.getHealthStatus().equals("ON_TRACK")).count();
-        int atRisk = (int) projects.stream().filter(p -> p.getHealthStatus().equals("AT_RISK")).count();
-        int delayed = (int) projects.stream().filter(p -> p.getHealthStatus().equals("DELAYED")).count();
-        int completed = (int) projects.stream().filter(p -> p.getHealthStatus().equals("COMPLETED")).count();
-
-        summary.put("onTrack", onTrack);
-        summary.put("atRisk", atRisk);
-        summary.put("delayed", delayed);
-        summary.put("completed", completed);
-        summary.put("total", projects.size());
-
-        // Calculate average progress
-        double avgProgress = projects.stream()
-                .filter(p -> !p.getHealthStatus().equals("COMPLETED"))
-                .mapToDouble(ProjectProgressResponse::getProgressPercentage)
-                .average()
-                .orElse(0.0);
-
-        summary.put("averageProgress", Math.round(avgProgress * 10) / 10.0);
-
-        return summary;
-    }
-
-// ==================== TEAM CAPACITY ANALYSIS ====================
-
-    public Map<String, Object> getTeamCapacityAnalysis(String managerEmail) {
-        List<MemberWorkloadResponse> workloads = getMemberWorkloads(managerEmail);
-
-        Map<String, Object> capacity = new HashMap<>();
-
-        int overloaded = (int) workloads.stream().filter(w -> w.getWorkloadStatus().equals("OVERLOADED")).count();
-        int high = (int) workloads.stream().filter(w -> w.getWorkloadStatus().equals("HIGH")).count();
-        int medium = (int) workloads.stream().filter(w -> w.getWorkloadStatus().equals("MEDIUM")).count();
-        int low = (int) workloads.stream().filter(w -> w.getWorkloadStatus().equals("LOW")).count();
-
-        capacity.put("overloaded", overloaded);
-        capacity.put("high", high);
-        capacity.put("medium", medium);
-        capacity.put("low", low);
-        capacity.put("totalMembers", workloads.size());
-
-        // Average workload percentage
-        double avgWorkload = workloads.stream()
-                .mapToDouble(MemberWorkloadResponse::getWorkloadPercentage)
-                .average()
-                .orElse(0.0);
-
-        capacity.put("averageWorkload", Math.round(avgWorkload * 10) / 10.0);
-
-        // Estimated hours
-        int totalEstimatedHours = workloads.stream()
-                .mapToInt(MemberWorkloadResponse::getEstimatedHoursRemaining)
-                .sum();
-
-        capacity.put("totalRemainingHours", totalEstimatedHours);
-
-        return capacity;
+        return TaskStatisticsResponse.builder()
+                .totalTasks(tasks.size())
+                .todoTasks(statusDist.get("TODO"))
+                .inProgressTasks(statusDist.get("IN_PROGRESS"))
+                .completedTasks(statusDist.get("COMPLETED"))
+                .cancelledTasks(statusDist.get("CANCELLED"))
+                .lowPriorityTasks(priorityDist.get("LOW"))
+                .mediumPriorityTasks(priorityDist.get("MEDIUM"))
+                .highPriorityTasks(priorityDist.get("HIGH"))
+                .urgentTasks(priorityDist.get("URGENT"))
+                .overdueTasks((int) tasks.stream().filter(t -> t.getDueDate() != null && t.getDueDate().isBefore(today) && t.getStatus() != TaskStatus.COMPLETED).count())
+                .dueTodayTasks((int) tasks.stream().filter(t -> t.getDueDate() != null && t.getDueDate().equals(today)).count())
+                .dueThisWeekTasks((int) tasks.stream().filter(t -> t.getDueDate() != null && t.getDueDate().isAfter(today) && t.getDueDate().isBefore(endOfWeek)).count())
+                .statusDistribution(statusDist)
+                .priorityDistribution(priorityDist)
+                .build();
     }
 }

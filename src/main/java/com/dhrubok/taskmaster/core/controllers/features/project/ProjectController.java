@@ -18,14 +18,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
+import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT;
 
 @RestController
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Project Management", description = "Project CRUD operations")
-@SecurityRequirement(name = JWT_TOKEN)
+@SecurityRequirement(name = JWT)
 public class ProjectController {
 
     private final ProjectService projectService;
@@ -34,11 +34,8 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
-    public ResponseEntity<Response> createProject(
-            Authentication authentication,
-            @Valid @RequestBody CreateProjectRequest request) {
-
-        log.info("POST /api/projects - Manager: {} creating project", authentication.getName());
+    public ResponseEntity<Response> createProject(Authentication authentication,
+                                                  @Valid @RequestBody CreateProjectRequest request) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -54,8 +51,6 @@ public class ProjectController {
     @GetMapping
     public ResponseEntity<Response> getAllProjects(Authentication authentication) {
 
-        log.info("GET /api/projects - User: {}", authentication.getName());
-
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -68,11 +63,8 @@ public class ProjectController {
     @Operation(summary = "Get project by ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/{projectId}")
-    public ResponseEntity<Response> getProjectById(
-            Authentication authentication,
-            @PathVariable String projectId) {
-
-        log.info("GET /api/projects/{} - User: {}", projectId, authentication.getName());
+    public ResponseEntity<Response> getProjectById(Authentication authentication,
+                                                   @PathVariable String projectId) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -87,12 +79,9 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{projectId}")
-    public ResponseEntity<Response> updateProject(
-            Authentication authentication,
-            @PathVariable String projectId,
-            @Valid @RequestBody UpdateProjectRequest request) {
-
-        log.info("PUT /api/projects/{} - Manager: {}", projectId, authentication.getName());
+    public ResponseEntity<Response> updateProject(Authentication authentication,
+                                                  @PathVariable String projectId,
+                                                  @Valid @RequestBody UpdateProjectRequest request) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -107,16 +96,16 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{projectId}/archive")
-    public ResponseEntity<Response> archiveProject(
-            Authentication authentication,
-            @PathVariable String projectId) {
-
-        log.info("PATCH /api/projects/{}/archive - Manager: {}", projectId, authentication.getName());
+    public ResponseEntity<Response> archiveProject(Authentication authentication,
+                                                   @PathVariable String projectId) {
 
         projectService.archiveProject(authentication.getName(), projectId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Project archived successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Project archived successfully",
+                        null)
         );
     }
 
@@ -124,16 +113,16 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{projectId}")
-    public ResponseEntity<Response> deleteProject(
-            Authentication authentication,
-            @PathVariable String projectId) {
-
-        log.info("DELETE /api/projects/{} - Manager: {}", projectId, authentication.getName());
+    public ResponseEntity<Response> deleteProject(Authentication authentication,
+                                                  @PathVariable String projectId) {
 
         projectService.deleteProject(authentication.getName(), projectId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Project deleted successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Project deleted successfully",
+                        null)
         );
     }
 
@@ -141,18 +130,17 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/{projectId}/members/{memberId}")
-    public ResponseEntity<Response> addMemberToProject(
-            Authentication authentication,
-            @PathVariable String projectId,
-            @PathVariable String memberId) {
-
-        log.info("POST /api/projects/{}/members/{} - Manager: {}",
-                projectId, memberId, authentication.getName());
+    public ResponseEntity<Response> addMemberToProject(Authentication authentication,
+                                                       @PathVariable String projectId,
+                                                       @PathVariable String memberId) {
 
         projectService.addMemberToProject(authentication.getName(), projectId, memberId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Member added to project successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Member added to project successfully",
+                        null)
         );
     }
 
@@ -160,29 +148,25 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{projectId}/members/{memberId}")
-    public ResponseEntity<Response> removeMemberFromProject(
-            Authentication authentication,
-            @PathVariable String projectId,
-            @PathVariable String memberId) {
-
-        log.info("DELETE /api/projects/{}/members/{} - Manager: {}",
-                projectId, memberId, authentication.getName());
+    public ResponseEntity<Response> removeMemberFromProject(Authentication authentication,
+                                                            @PathVariable String projectId,
+                                                            @PathVariable String memberId) {
 
         projectService.removeMemberFromProject(authentication.getName(), projectId, memberId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Member removed from project successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Member removed from project successfully",
+                        null)
         );
     }
 
     @Operation(summary = "Get all members of a project")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/{projectId}/members")
-    public ResponseEntity<Response> getProjectMembers(
-            Authentication authentication,
-            @PathVariable String projectId) {
-
-        log.info("GET /api/projects/{}/members - User: {}", projectId, authentication.getName());
+    public ResponseEntity<Response> getProjectMembers(Authentication authentication,
+                                                      @PathVariable String projectId) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -197,11 +181,8 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/{projectId}/stats")
-    public ResponseEntity<Response> getProjectStats(
-            Authentication authentication,
-            @PathVariable String projectId) {
-
-        log.info("GET /api/projects/{}/stats - Manager: {}", projectId, authentication.getName());
+    public ResponseEntity<Response> getProjectStats(Authentication authentication,
+                                                    @PathVariable String projectId) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(

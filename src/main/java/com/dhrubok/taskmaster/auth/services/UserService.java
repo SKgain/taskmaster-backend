@@ -12,11 +12,12 @@ import com.dhrubok.taskmaster.common.services.EmailService;
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import com.dhrubok.taskmaster.persistence.auth.enums.RoleType;
 import com.dhrubok.taskmaster.persistence.auth.repositories.UserRepository;
+import com.dhrubok.taskmaster.persistence.system.entities.SystemConfig;
+import com.dhrubok.taskmaster.persistence.system.repositories.SystemConfigRepository;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -35,10 +36,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.RESET_PASSWORD_URL;
-import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.VERIFICATION_URL2;
-import static com.dhrubok.taskmaster.common.constants.ErrorCode.ERROR_ACCOUNT_IS_NOT_VERIFIED;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -49,6 +46,7 @@ public class UserService {
     private final ModelMapper mapper;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final SystemConfigRepository systemConfigRepository;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -61,7 +59,13 @@ public class UserService {
         Optional<User> existUser = userRepository.findByEmail(request.getEmail().toLowerCase());
 
         if (existUser.isPresent()) {
-            throw new DuplicateResourceException(ErrorCode.ERROR_USER_ALREADY_EXISTS +": "+ request.getEmail());
+            throw new DuplicateResourceException(ErrorCode.ERROR_USER_ALREADY_EXISTS);
+        }
+
+        SystemConfig systemConfig = systemConfigRepository.findFirstByOrderByIdDesc();
+
+        if(!systemConfig.isAllowRegistration()){
+            throw new ApplicationException(ErrorCode.ERROR_USER_REGISTRATION_OFF);
         }
 
         User user = User.builder()
@@ -79,20 +83,19 @@ public class UserService {
 
         userRepository.save(user);
 
-        String verificationUrl = frontendUrl + "/verify.html?token=" + user.getVerificationToken();
+        String verificationUrl = frontendUrl + SecurityConstant.VERIFICATION_URL + user.getVerificationToken();
         emailService.sendVerificationEmail(user.getEmail(), verificationUrl);
 
         return Response.getResponseEntity(
                 true,
-                SuccessCode.SUCCESS_USER_SIGN_UP_SUCCESS,
+                SuccessCode.SUCCESS_USER_SIGN_UP,
                 mapper.map(user, AuthUserResponse.class));
     }
 
-    // Verify user
     @Transactional
     public void verifyUser(String token) throws MessagingException, IOException {
         User user = userRepository.findByVerificationToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_INVALID_VERIFICATION_TOKEN));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_VERIFICATION_TOKEN_INVALID));
 
         if (user.getTokenExpiryDate().isBefore(Instant.now())) {
             throw new ApplicationException(ErrorCode.ERROR_VERIFICATION_TOKEN_EXPIRED);
@@ -113,7 +116,6 @@ public class UserService {
                 mapper.map(user, AuthUserResponse.class));
     }
 
-    //Resend Account Verification Email
     @Transactional
     public Response resendVerificationCode(String email) throws MessagingException, IOException {
         User user = userRepository.findByEmail(email.toLowerCase())
@@ -127,17 +129,16 @@ public class UserService {
         user.setTokenExpiryDate(Instant.now().plusSeconds(24 * 3600)); // 24 hours expiry
         userRepository.save(user);
 
-        String verificationUrl = frontendUrl + "/verify.html?token=" + user.getVerificationToken();
+        String verificationUrl = frontendUrl + SecurityConstant.VERIFICATION_URL + user.getVerificationToken();
         emailService.sendVerificationEmail(user.getEmail(), verificationUrl);
 
         return Response.getResponseEntity(
                 true,
-                "Verification link sent successfully to " + email,
+                SuccessCode.SUCCESS_EMAIL_RESENT,
                 null
         );
     }
 
-    //Forgot Password - Send Reset Link
     @Transactional
     public Response forgotPassword(String email) throws MessagingException, IOException {
         User user = userRepository.findByEmail(email.toLowerCase())
@@ -147,21 +148,20 @@ public class UserService {
         user.setTokenExpiryDate(Instant.now().plusSeconds(15 * 60)); // 15 minutes expiry
         userRepository.save(user);
 
-        String resetUrl = frontendUrl + "/reset-password.html?token=" + user.getVerificationToken();
+        String resetUrl = frontendUrl + SecurityConstant.RESET_PASSWORD_URL + user.getVerificationToken();
         emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
 
         return Response.getResponseEntity(
                 true,
-                "Password reset link sent to your email.",
+                SuccessCode.SUCCESS_FORGET_PASSWORD_EMAIL_SENT,
                 null
         );
     }
 
-    //Reset Password - Handle New Password Submission
     @Transactional
     public Response resetPassword(ResetPasswordRequest request) {
         User user = userRepository.findByVerificationToken(request.getToken())
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_INVALID_VERIFICATION_TOKEN));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_VERIFICATION_TOKEN_INVALID));
 
         if (user.getTokenExpiryDate().isBefore(Instant.now())) {
             throw new ApplicationException(ErrorCode.ERROR_VERIFICATION_TOKEN_EXPIRED);
@@ -180,12 +180,11 @@ public class UserService {
 
         return Response.getResponseEntity(
                 true,
-                "Password has been reset successfully. You can now login.",
+                SuccessCode.SUCCESS_PASSWORD_RESET,
                 null
         );
     }
 
-    // Sign in user
     @Transactional
     public Response signIn(@Valid SignInRequest request) {
         try {
@@ -196,23 +195,41 @@ public class UserService {
                     )
             );
             if (authentication.isAuthenticated()) {
-                String accessToken = jwtService.generateAccessToken(request.getEmail());
 
                 User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new ApplicationException(
                         ErrorCode.ERROR_USER_NOT_FOUND));
 
-                String refreshToken = jwtService.generateRefreshToken(user.getEmail());
-                user.setRefreshToken(refreshToken);
-                userRepository.save(user);
+                if (!user.getIsActive()) {
+                    throw new ApplicationException(ErrorCode.ERROR_ACCOUNT_IS_DISABLED);
+                }
+
+                if (!user.getIsEmailVerified()) {
+                    throw new ApplicationException(ErrorCode.ERROR_ACCOUNT_IS_NOT_VERIFIED);
+                }
 
                 if (!user.getIsEnabled()) {
                     throw new ApplicationException(ErrorCode.ERROR_ACCOUNT_IS_NOT_VERIFIED);
                 }
 
+                SystemConfig systemConfig = systemConfigRepository.findFirstByOrderByIdDesc();
+
+                if(systemConfig.isMaintenanceMode() && !(user.getRole().equals(RoleType.ADMIN))){
+                    throw new ApplicationException(ErrorCode.ERROR_SYSTEM_UNDER_MAINTENANCE);
+                }
+
+
+                String accessToken = jwtService.generateAccessToken(request.getEmail());
+
+                String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+                user.setRefreshToken(refreshToken);
+                user.setLastLogin(Instant.now());
+
+                userRepository.save(user);
+
                 AuthUserResponse userDto = mapper.map(user, AuthUserResponse.class);
                 return Response.getResponseEntity(
                         true,
-                        SuccessCode.SUCCESS_USER_SIGN_IN_SUCCESS,
+                        SuccessCode.SUCCESS_USER_SIGN_IN,
                         Map.of(
                                 "accessToken", accessToken,
                                 "refreshToken", refreshToken,
@@ -237,7 +254,7 @@ public class UserService {
         String email = jwtService.extractUserName(refreshToken);
 
         if (email == null || !jwtService.validateToken(refreshToken, email)) {
-            throw new ApplicationException("Invalid or Expired Refresh Token. Please Login again.");
+            throw new ApplicationException(ErrorCode.ERROR_VERIFICATION_REFRESH_TOKEN_INVALID);
         }
 
         String newAccessToken = jwtService.generateAccessToken(email);
@@ -253,10 +270,9 @@ public class UserService {
     public void logout(String username) {
 
         var user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.ERROR_USER_NOT_FOUND));
 
          user.setRefreshToken(null);
-         userRepository.save(user);
-        log.info("User {} logged out and refresh token invalidated.", username);
+         userRepository.save(user);;
     }
 }

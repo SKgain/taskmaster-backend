@@ -19,7 +19,6 @@ import java.util.List;
 public class TaskActivityService {
     private final TaskActivityRepository taskActivityRepository;
 
-    // Log activity
     public void logActivity(Task task, User user, ActivityType type,
                             String fieldChanged, String oldValue, String newValue) {
         TaskActivity activity = new TaskActivity();
@@ -35,7 +34,6 @@ public class TaskActivityService {
         taskActivityRepository.save(activity);
     }
 
-    // Build human-readable description
     private String buildDescription(ActivityType type, String field,
                                     String oldValue, String newValue) {
         return switch (type) {
@@ -50,7 +48,6 @@ public class TaskActivityService {
         };
     }
 
-    // Get activities for a task
     public List<TaskActivity> getTaskActivities(String taskId) {
         return taskActivityRepository.findByTaskIdOrderByCreatedAtDesc(taskId);
     }

@@ -46,7 +46,6 @@ public class MeetingServiceImpl implements MeetingService {
         User manager = getUserByEmail(managerEmail);
         Project project = getProjectById(request.getProjectId());
 
-        // Verify manager has access to project
         verifyProjectAccess(manager, project);
 
         Meeting meeting = Meeting.builder()
@@ -62,7 +61,6 @@ public class MeetingServiceImpl implements MeetingService {
                 .status(MeetingStatus.SCHEDULED)
                 .build();
 
-        // Add participants if provided
         if (request.getParticipantIds() != null && !request.getParticipantIds().isEmpty()) {
             List<User> participants = userRepository.findAllById(
                     new ArrayList<>(request.getParticipantIds())
@@ -71,30 +69,24 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         Meeting savedMeeting = meetingRepository.save(meeting);
-        log.info("Meeting created: {} by manager: {}", savedMeeting.getId(), managerEmail);
 
-        // EMAIL NOTIFICATION LOGIC START
         if (!savedMeeting.getParticipants().isEmpty()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, d MMM yyyy 'at' h:mm a");
             String formattedTime = savedMeeting.getScheduledTime().format(formatter);
 
-            // 2. Determine Link and Location display text
             String meetingLink = savedMeeting.getMeetingLink();
             String location = savedMeeting.getLocation();
 
-            // If there is a link, show "Online Meeting", otherwise show the location name
             String displayLocation = (meetingLink != null && !meetingLink.isEmpty())
                     ? "Online Meeting"
                     : (location != null ? location : "See Details");
 
-            // If there is a meeting link, the button goes there. Otherwise, it goes to your dashboard.
             String mainButtonUrl = (meetingLink != null && !meetingLink.isEmpty())
                     ? meetingLink
-                    : frontendUrl + "/dashboard.html"; // Change to your actual frontend URL variable
+                    : frontendUrl + "/dashboard.html";
 
-            // 3. Loop through participants
             for (User participant : savedMeeting.getParticipants()) {
-                // Skip sending email to the organizer (the manager)
+
                 if(participant.getEmail().equals(manager.getEmail())) continue;
 
                 try {
@@ -108,7 +100,6 @@ public class MeetingServiceImpl implements MeetingService {
                             mainButtonUrl
                     );
                 } catch (Exception e) {
-                    // Log error but allow the meeting creation to complete successfully
                     log.error("Failed to send meeting invitation to {}: {}", participant.getEmail(), e.getMessage());
                 }
             }
@@ -177,7 +168,6 @@ public class MeetingServiceImpl implements MeetingService {
         if (request.getLocation() != null) meeting.setLocation(request.getLocation());
 
         Meeting updatedMeeting = meetingRepository.save(meeting);
-        log.info("Meeting updated: {} by manager: {}", meetingId, managerEmail);
 
         return toMeetingResponse(updatedMeeting);
     }
@@ -191,8 +181,6 @@ public class MeetingServiceImpl implements MeetingService {
 
         meeting.setStatus(MeetingStatus.CANCELLED);
         meetingRepository.save(meeting);
-
-        log.info("Meeting cancelled: {} by manager: {}", meetingId, managerEmail);
     }
 
     @Override
@@ -204,8 +192,6 @@ public class MeetingServiceImpl implements MeetingService {
 
         meeting.setStatus(MeetingStatus.COMPLETED);
         meetingRepository.save(meeting);
-
-        log.info("Meeting completed: {} by manager: {}", meetingId, managerEmail);
     }
 
     @Override
@@ -222,8 +208,6 @@ public class MeetingServiceImpl implements MeetingService {
 
         meeting.getParticipants().add(participant);
         meetingRepository.save(meeting);
-
-        log.info("Participant added: {} to meeting: {}", userId, meetingId);
     }
 
     @Override
@@ -236,8 +220,6 @@ public class MeetingServiceImpl implements MeetingService {
 
         meeting.getParticipants().remove(participant);
         meetingRepository.save(meeting);
-
-        log.info("Participant removed: {} from meeting: {}", userId, meetingId);
     }
 
     @Override
@@ -248,7 +230,6 @@ public class MeetingServiceImpl implements MeetingService {
         verifyMeetingOwnership(manager, meeting);
 
         meetingRepository.delete(meeting);
-        log.info("Meeting deleted: {} by manager: {}", meetingId, managerEmail);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.persistence.features.user.services;
 
+import com.dhrubok.taskmaster.auth.constants.SecurityConstant;
 import com.dhrubok.taskmaster.common.exceptions.ApplicationException;
 import com.dhrubok.taskmaster.common.exceptions.DuplicateResourceException;
 import com.dhrubok.taskmaster.common.exceptions.ResourceNotFoundException;
@@ -44,32 +45,27 @@ public class MemberManagementService {
     private static final int PASSWORD_LENGTH = 12;
 
     @Transactional
-    public UserResponse createMember(String managerEmail, CreateMemberRequest request)
-            throws MessagingException, IOException {
-
-        log.info("Manager {} attempting to create member: {}", managerEmail, request.getEmail());
+    public UserResponse createMember(String managerEmail, CreateMemberRequest request) {
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found with email: " + managerEmail));
 
         if (manager.getRole() != RoleType.MANAGER) {
-            log.error("User {} with role {} attempted to create member", managerEmail, manager.getRole());
+
             throw new ApplicationException("Only MANAGER can create members. Your role: " + manager.getRole());
         }
 
         String memberEmail = request.getEmail().toLowerCase();
         if (userRepository.existsByEmail(memberEmail)) {
-            log.error("Member email already exists: {}", memberEmail);
+
             throw new DuplicateResourceException("Member with email " + memberEmail + " already exists");
         }
 
         String generatedPassword = generateSecurePassword();
-        log.info("Generated secure password for member: {}", memberEmail);
 
         String username = request.getUsername();
         if (username == null || username.isBlank()) {
             username = memberEmail.split("@")[0];
-            log.info("Auto-generated username: {} for email: {}", username, memberEmail);
         }
 
         User member = User.builder()
@@ -87,9 +83,8 @@ public class MemberManagementService {
                 .build();
 
         userRepository.save(member);
-        log.info("Member created successfully: {} by Manager: {}", memberEmail, managerEmail);
 
-        String verificationUrl = frontendUrl + "/verify.html?token=" + member.getVerificationToken();
+        String verificationUrl = frontendUrl + SecurityConstant.VERIFICATION_URL + member.getVerificationToken();
 
         try {
             emailService.sendMemberWelcomeEmail(
@@ -98,7 +93,7 @@ public class MemberManagementService {
                     generatedPassword,
                     verificationUrl
             );
-            log.info("Welcome email sent to member: {}", memberEmail);
+
         } catch (Exception e) {
             log.error("Failed to send welcome email to {}: {}", memberEmail, e.getMessage());
         }
@@ -108,7 +103,6 @@ public class MemberManagementService {
 
     @Transactional(readOnly = true)
     public List<UserResponse> getAllMembers(String managerEmail) {
-        log.info("Manager {} requesting all members", managerEmail);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -118,7 +112,6 @@ public class MemberManagementService {
         }
 
         List<User> members = userRepository.findByRoleAndCreatedBy(RoleType.MEMBER, managerEmail);
-        log.info("Found {} members", members.size());
 
         return members.stream()
                 .map(this::mapToUserResponse)
@@ -127,7 +120,6 @@ public class MemberManagementService {
 
     @Transactional(readOnly = true)
     public List<UserResponse> getActiveMembers(String managerEmail) {
-        log.info("Manager {} requesting active members", managerEmail);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -137,7 +129,6 @@ public class MemberManagementService {
         }
 
         List<User> activeMembers = userRepository.findByRoleAndIsActiveTrueAndCreatedBy(RoleType.MEMBER, managerEmail);
-        log.info("Found {} active members", activeMembers.size());
 
         return activeMembers.stream()
                 .map(this::mapToUserResponse)
@@ -146,7 +137,6 @@ public class MemberManagementService {
 
     @Transactional(readOnly = true)
     public UserResponse getMemberById(String managerEmail, String memberId) {
-        log.info("Manager {} requesting member with ID: {}", managerEmail, memberId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -167,7 +157,6 @@ public class MemberManagementService {
 
     @Transactional
     public void deactivateMember(String managerEmail, String memberId) {
-        log.info("Manager {} attempting to deactivate member: {}", managerEmail, memberId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -189,12 +178,10 @@ public class MemberManagementService {
 
         member.setIsActive(false);
         userRepository.save(member);
-        log.info("Member {} deactivated by Manager {}", memberId, managerEmail);
     }
 
     @Transactional
     public void reactivateMember(String managerEmail, String memberId) {
-        log.info("Manager {} attempting to reactivate member: {}", managerEmail, memberId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -212,14 +199,11 @@ public class MemberManagementService {
 
         member.setIsActive(true);
         userRepository.save(member);
-        log.info("Member {} reactivated by Manager {}", memberId, managerEmail);
     }
 
     @Transactional
     public void resendMemberVerification(String managerEmail, String memberId)
             throws MessagingException, IOException {
-
-        log.info("Manager {} resending verification for member: {}", managerEmail, memberId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -239,10 +223,8 @@ public class MemberManagementService {
         member.setTokenExpiryDate(Instant.now().plusSeconds(7 * 24 * 3600));
         userRepository.save(member);
 
-        String verificationUrl = frontendUrl + "/verify.html?token=" + member.getVerificationToken();
+        String verificationUrl = frontendUrl + SecurityConstant.VERIFICATION_URL + member.getVerificationToken();
         emailService.sendVerificationEmail(member.getEmail(), verificationUrl);
-
-        log.info("Verification email resent to member {} by Manager {}", memberId, managerEmail);
     }
 
     @Transactional(readOnly = true)

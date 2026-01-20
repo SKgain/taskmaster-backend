@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.persistence.features.user.services;
 
+import com.dhrubok.taskmaster.common.constants.ErrorCode;
 import com.dhrubok.taskmaster.common.constants.SuccessCode;
 import com.dhrubok.taskmaster.common.exceptions.ApplicationException;
 import com.dhrubok.taskmaster.common.exceptions.ResourceNotFoundException;
@@ -35,56 +36,47 @@ public class UserUserService {
 
     @Transactional(readOnly = true)
     public Response getUserProfile(String email) {
-        log.info("Fetching profile for user: {}", email);
 
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        return Response.getResponseEntity(true, SuccessCode.SUCCESS, mapToUserResponse(user));
+        return Response.getResponseEntity(
+                true,
+                SuccessCode.SUCCESS,
+                mapToUserResponse(user));
     }
 
     @Transactional
     public UserResponse updateUserProfile(String email, UpdateProfileRequest request) {
-        log.info("Updating profile for user: {} with data: {}", email, request);
 
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        // Update full name
         if (request.getFullName() != null && !request.getFullName().isBlank()) {
-            log.info("Updating fullName from '{}' to '{}'", user.getFullName(), request.getFullName());
             user.setFullName(request.getFullName());
         }
 
-        // Update phone number - handle both null and empty string
         if (request.getPhoneNumber() != null) {
             String phoneNumber = request.getPhoneNumber().isBlank() ? null : request.getPhoneNumber();
-            log.info("Updating phoneNumber from '{}' to '{}'", user.getPhoneNumber(), phoneNumber);
             user.setPhoneNumber(phoneNumber);
         }
 
-        // Update profile image URL (if provided directly)
         if (request.getProfileImage() != null && !request.getProfileImage().isBlank()) {
-            log.info("Updating profileImage from '{}' to '{}'", user.getProfileImage(), request.getProfileImage());
             user.setProfileImage(request.getProfileImage());
         }
 
         User updatedUser = userRepository.save(user);
-        log.info("Profile updated successfully for user: {}. New values - fullName: {}, phoneNumber: {}",
-                email, updatedUser.getFullName(), updatedUser.getPhoneNumber());
 
         return mapToUserResponse(updatedUser);
     }
 
     @Transactional
     public UserResponse uploadProfilePhoto(String email, MultipartFile file) throws IOException {
-        // Validate file
         fileStorageService.validateImageFile(file);
 
         User user = userRepository.findByEmail(email.toLowerCase())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.ERROR_USER_NOT_FOUND));
 
-        // Delete old photo if exists
         if (user.getProfileImage() != null && user.getProfileImage().startsWith("/uploads")) {
             try {
                 fileStorageService.deleteFile(user.getProfileImage());
@@ -93,60 +85,48 @@ public class UserUserService {
             }
         }
 
-        // Store new photo - pass the user ID as directory
         String photoUrl = fileStorageService.storeFile(file, user.getId());
-        log.info("Stored new profile photo at: {}", photoUrl);
 
         user.setProfileImage(photoUrl);
 
         User updatedUser = userRepository.save(user);
-        log.info("Profile photo uploaded successfully for user: {}", email);
 
         return mapToUserResponse(updatedUser);
     }
 
     @Transactional
     public void changePassword(String email, ChangePasswordRequest request) {
-        log.info("Changing password for user: {}", email);
 
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        // Verify current password
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new ApplicationException("Current password is incorrect");
         }
 
-        // Verify new password matches confirmation
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new ApplicationException("New password and confirmation do not match");
         }
 
-        // Check if new password is same as current
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new ApplicationException("New password must be different from current password");
         }
 
-        // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-
-        log.info("Password changed successfully for user: {}", email);
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUserById(String id) {
-        log.info("Fetching user by ID: {}", id);
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_USER_NOT_FOUND));
 
         return mapToUserResponse(user);
     }
 
     @Transactional(readOnly = true)
     public List<UserResponse> searchUsers(String query) {
-        log.info("Searching users with query: {}", query);
 
         if (query == null || query.isBlank()) {
             return List.of();
@@ -155,8 +135,6 @@ public class UserUserService {
         List<User> users = userRepository
                 .findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
 
-        log.info("Found {} users matching query: {}", users.size(), query);
-
         return users.stream()
                 .map(this::mapToUserResponse)
                 .collect(Collectors.toList());
@@ -164,11 +142,9 @@ public class UserUserService {
 
     @Transactional(readOnly = true)
     public List<UserResponse> getAllActiveUsers() {
-        log.info("Fetching all active users");
-
         List<User> users = userRepository.findAll().stream()
                 .filter(User::getIsActive)
-                .collect(Collectors.toList());
+                .toList();
 
         return users.stream()
                 .map(this::mapToUserResponse)
@@ -186,6 +162,8 @@ public class UserUserService {
                 .profileImage(buildFullImageUrl(user.getProfileImage()))
                 .isActive(user.getIsActive())
                 .isEmailVerified(user.getIsEmailVerified())
+                .broadCastTitle(user.getBroadCastTitle())
+                .broadCastMessage(user.getBroadCastMessage())
                 .build();
     }
 
@@ -193,8 +171,20 @@ public class UserUserService {
         if (relativePath == null || relativePath.isEmpty()) {
             return null;
         }
-        // Remove leading slash if present
+
         String path = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
         return "http://localhost:8080/api/" + path;
+    }
+
+    public Response removeBroadCastMessage(String email) {
+
+        User user = userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.ERROR_USER_NOT_FOUND));
+        user.setBroadCastTitle(null);
+        user.setBroadCastMessage(null);
+
+        userRepository.save(user);
+
+        return Response.getResponseEntity(true, SuccessCode.SUCCESS, mapToUserResponse(user));
     }
 }

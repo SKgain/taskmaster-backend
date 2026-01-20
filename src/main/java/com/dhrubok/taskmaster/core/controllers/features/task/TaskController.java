@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
+import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT;
 
 @RestController
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Task Management", description = "Task CRUD and assignment operations")
-@SecurityRequirement(name = JWT_TOKEN)
+@SecurityRequirement(name = JWT)
 public class TaskController {
     private final TaskService taskService;
     private  final TaskActivityService activityService;
@@ -41,12 +41,8 @@ public class TaskController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
-    public ResponseEntity<Response> createTask(
-            Authentication authentication,
-            @Valid @RequestBody CreateTaskRequest request) {
-
-        log.info("POST /api/tasks - Manager: {} creating task", authentication.getName());
-
+    public ResponseEntity<Response> createTask(Authentication authentication,
+                                               @Valid @RequestBody CreateTaskRequest request) {
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -61,8 +57,6 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<Response> getAllTasks(Authentication authentication) {
 
-        log.info("GET /api/tasks - User: {}", authentication.getName());
-
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -75,11 +69,8 @@ public class TaskController {
     @Operation(summary = "Get tasks by project")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<Response> getTasksByProject(
-            Authentication authentication,
-            @PathVariable String projectId) {
-
-        log.info("GET /api/tasks/project/{} - User: {}", projectId, authentication.getName());
+    public ResponseEntity<Response> getTasksByProject(Authentication authentication,
+                                                      @PathVariable String projectId) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -93,11 +84,8 @@ public class TaskController {
     @Operation(summary = "Get task by ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/{taskId}")
-    public ResponseEntity<Response> getTaskById(
-            Authentication authentication,
-            @PathVariable String taskId) {
-
-        log.info("GET /api/tasks/{} - User: {}", taskId, authentication.getName());
+    public ResponseEntity<Response> getTaskById(Authentication authentication,
+                                                @PathVariable String taskId) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -112,12 +100,9 @@ public class TaskController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{taskId}")
-    public ResponseEntity<Response> updateTask(
-            Authentication authentication,
-            @PathVariable String taskId,
-            @Valid @RequestBody UpdateTaskRequest request) {
-
-        log.info("PUT /api/tasks/{} - Manager: {}", taskId, authentication.getName());
+    public ResponseEntity<Response> updateTask(Authentication authentication,
+                                               @PathVariable String taskId,
+                                               @Valid @RequestBody UpdateTaskRequest request) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -131,13 +116,9 @@ public class TaskController {
     @Operation(summary = "Update task status (Member can update their own tasks)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PatchMapping("/{taskId}/status")
-    public ResponseEntity<Response> updateTaskStatus(
-            Authentication authentication,
-            @PathVariable String taskId,
-            @Valid @RequestBody UpdateTaskStatusRequest request) {
-
-        log.info("PATCH /api/tasks/{}/status - User: {}", taskId, authentication.getName());
-
+    public ResponseEntity<Response> updateTaskStatus(Authentication authentication,
+                                                     @PathVariable String taskId,
+                                                     @Valid @RequestBody UpdateTaskStatusRequest request) {
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -151,18 +132,17 @@ public class TaskController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{taskId}/assign/{memberId}")
-    public ResponseEntity<Response> reassignTask(
-            Authentication authentication,
-            @PathVariable String taskId,
-            @PathVariable String memberId) {
-
-        log.info("PATCH /api/tasks/{}/assign/{} - Manager: {}",
-                taskId, memberId, authentication.getName());
+    public ResponseEntity<Response> reassignTask(Authentication authentication,
+                                                 @PathVariable String taskId,
+                                                 @PathVariable String memberId) {
 
         taskService.reassignTask(authentication.getName(), taskId, memberId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Task reassigned successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Task reassigned successfully",
+                        null)
         );
     }
 
@@ -170,16 +150,16 @@ public class TaskController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{taskId}")
-    public ResponseEntity<Response> deleteTask(
-            Authentication authentication,
-            @PathVariable String taskId) {
-
-        log.info("DELETE /api/tasks/{} - Manager: {}", taskId, authentication.getName());
+    public ResponseEntity<Response> deleteTask(Authentication authentication,
+                                               @PathVariable String taskId) {
 
         taskService.deleteTask(authentication.getName(), taskId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Task deleted successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Task deleted successfully",
+                        null)
         );
     }
 
@@ -187,8 +167,6 @@ public class TaskController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/my-tasks")
     public ResponseEntity<Response> getMyTasks(Authentication authentication) {
-
-        log.info("GET /api/tasks/my-tasks - User: {}", authentication.getName());
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -203,8 +181,6 @@ public class TaskController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/overdue")
     public ResponseEntity<Response> getOverdueTasks(Authentication authentication) {
-
-        log.info("GET /api/tasks/overdue - User: {}", authentication.getName());
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -221,8 +197,6 @@ public class TaskController {
     @GetMapping("/stats")
     public ResponseEntity<Response> getTaskStats(Authentication authentication) {
 
-        log.info("GET /api/tasks/stats - Manager: {}", authentication.getName());
-
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -235,11 +209,8 @@ public class TaskController {
     @Operation(summary = "Search tasks by title or description")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/search")
-    public ResponseEntity<Response> searchTasks(
-            Authentication authentication,
-            @RequestParam String query) {
-
-        log.info("GET /api/tasks/search?query={} - User: {}", query, authentication.getName());
+    public ResponseEntity<Response> searchTasks(Authentication authentication,
+                                                @RequestParam String query) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -260,7 +231,10 @@ public class TaskController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Activities retrieved", response)
+                Response.getResponseEntity(
+                        true,
+                        "Activities retrieved",
+                        response)
         );
     }
 }

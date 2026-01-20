@@ -18,6 +18,9 @@ public class Project extends AuditModel {
     @Column(name = "manager_username")
     private String managerUsername;
 
+    @Column(name = "manager_id")
+    private String managerId;
+
     @Column(nullable = false)
     private String projectName;
 

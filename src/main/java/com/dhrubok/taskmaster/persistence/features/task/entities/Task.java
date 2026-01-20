@@ -3,7 +3,7 @@ package com.dhrubok.taskmaster.persistence.features.task.entities;
 import com.dhrubok.taskmaster.common.entities.AuditModel;
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import com.dhrubok.taskmaster.persistence.features.project.entities.Project;
-import com.dhrubok.taskmaster.persistence.features.task.enums.Priority;
+import com.dhrubok.taskmaster.persistence.features.task.enums.TaskPriority;
 import com.dhrubok.taskmaster.persistence.features.task.enums.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -30,7 +30,7 @@ public class Task extends AuditModel {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private Priority priority = Priority.MEDIUM;
+    private TaskPriority taskPriority = TaskPriority.MEDIUM;
 
     private LocalDate dueDate;
 

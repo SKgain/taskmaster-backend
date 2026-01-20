@@ -19,4 +19,11 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
     List<Project> findByCreatedBy(String email);
 
     List<Project> findAllByCreatedBy(String email);
+
+    List<Project> findByManagerId(String managerId);
+    List<Project> findByManagerIdAndStatus(String managerId, ProjectStatus status);
+    long countByManagerId(String managerId);
+    long countByManagerIdAndStatus(String managerId, ProjectStatus status);
+
+    boolean existsByIdAndManagerId(String projectId, String managerId);
 }

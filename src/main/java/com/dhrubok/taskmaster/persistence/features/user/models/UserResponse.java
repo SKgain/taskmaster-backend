@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,4 +21,8 @@ public class UserResponse {
     private String profileImage;
     private Boolean isActive;
     private Boolean isEmailVerified;
+    private String department;
+    private Instant lastLoginAt;
+    private String broadCastTitle;
+    private String broadCastMessage;
 }

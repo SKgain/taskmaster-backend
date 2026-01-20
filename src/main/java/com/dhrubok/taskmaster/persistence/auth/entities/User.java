@@ -31,8 +31,11 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore // STOP password from leaking to frontend
+    @JsonIgnore
     private String password;
+
+    @Column(name = "department", length = 100)
+    private String department;
 
     @Column(name = "full_name", nullable = false)
     private String fullName;
@@ -59,6 +62,15 @@ public class User {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Column(name = "last_login")
+    private Instant lastLogin;
+
+    @Column(name = "broad_cast_title")
+    private String broadCastTitle;
+
+    @Column(name = "broad_cast_message")
+    private String broadCastMessage;
+
     @Column(name = "is_enabled", nullable = false)
     private Boolean isEnabled = false;
 
@@ -66,15 +78,15 @@ public class User {
     private Boolean isEmailVerified = false;
 
     @Column(name = "verification_token")
-    @JsonIgnore // Security fix
+    @JsonIgnore
     private String verificationToken;
 
     @Column(name = "token_expiry_date")
-    @JsonIgnore // Security fix
+    @JsonIgnore
     private Instant tokenExpiryDate;
 
     @Column(name = "refresh_token")
-    @JsonIgnore // Security fix
+    @JsonIgnore
     private String refreshToken;
 
     @PrePersist

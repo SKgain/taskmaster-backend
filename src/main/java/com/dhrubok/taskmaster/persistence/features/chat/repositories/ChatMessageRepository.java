@@ -8,13 +8,8 @@ import java.util.List;
 
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, String> {
-    /**
-     * Find all messages for a project, ordered by timestamp
-     */
+
     List<ChatMessage> findByProjectIdOrderByTimestampAsc(String projectId);
 
-    /**
-     * Delete all messages for a project
-     */
     void deleteByProjectId(String projectId);
 }

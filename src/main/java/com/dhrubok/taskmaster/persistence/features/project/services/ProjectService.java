@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.persistence.features.project.services;
 
+import com.dhrubok.taskmaster.common.constants.ErrorCode;
 import com.dhrubok.taskmaster.common.exceptions.ApplicationException;
 import com.dhrubok.taskmaster.common.exceptions.ResourceNotFoundException;
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
@@ -36,7 +37,6 @@ public class ProjectService {
 
     @Transactional
     public ProjectResponse createProject(String managerEmail, CreateProjectRequest request) {
-        log.info("Manager {} creating project: {}", managerEmail, request.getProjectName());
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -55,34 +55,29 @@ public class ProjectService {
                 .build();
 
         projectRepository.save(project);
-        log.info("Project created with ID: {}", project.getId());
 
-        // Add manager as project owner
         ProjectMember projectMember = new ProjectMember();
         projectMember.setProject(project);
         projectMember.setUser(manager);
         projectMember.setRole(ProjectRole.OWNER);
         projectMemberRepository.save(projectMember);
 
-        log.info("Manager {} added as OWNER of project {}", managerEmail, project.getId());
-
         return mapToProjectResponse(project);
     }
 
     @Transactional(readOnly = true)
     public List<ProjectResponse> getAllProjectsForUser(String email) {
-        log.info("Fetching all projects for user: {}", email);
 
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (user.getRole() == RoleType.MANAGER) {
-            // Manager sees all projects
+
             return projectRepository.findAllByCreatedBy(email).stream()
                     .map(this::mapToProjectResponse)
                     .collect(Collectors.toList());
         } else {
-            // Member sees only assigned projects
+
             List<ProjectMember> memberships = projectMemberRepository.findByUser(user);
             return memberships.stream()
                     .map(ProjectMember::getProject)
@@ -93,15 +88,13 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public ProjectResponse getProjectById(String email, String projectId) {
-        log.info("User {} fetching project: {}", email, projectId);
 
         User user = userRepository.findByEmail(email.toLowerCase())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ERROR_USER_NOT_FOUND));
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with ID: " + projectId));
 
-        // Check access
         if (user.getRole() != RoleType.MANAGER) {
             boolean isMember = projectMemberRepository.existsByProjectAndUser(project, user);
             if (!isMember) {
@@ -114,7 +107,6 @@ public class ProjectService {
 
     @Transactional
     public ProjectResponse updateProject(String managerEmail, String projectId, UpdateProjectRequest request) {
-        log.info("Manager {} updating project: {}", managerEmail, projectId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -143,14 +135,12 @@ public class ProjectService {
         }
 
         projectRepository.save(project);
-        log.info("Project {} updated successfully", projectId);
 
         return mapToProjectResponse(project);
     }
 
     @Transactional
     public void archiveProject(String managerEmail, String projectId) {
-        log.info("Manager {} archiving project: {}", managerEmail, projectId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -164,13 +154,10 @@ public class ProjectService {
 
         project.setStatus(ProjectStatus.ARCHIVED);
         projectRepository.save(project);
-
-        log.info("Project {} archived successfully", projectId);
     }
 
     @Transactional
     public void deleteProject(String managerEmail, String projectId) {
-        log.info("Manager {} deleting project: {}", managerEmail, projectId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -182,18 +169,13 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with ID: " + projectId));
 
-        // Delete all project members
         projectMemberRepository.deleteByProject(project);
 
-        // Delete project
         projectRepository.delete(project);
-
-        log.info("Project {} deleted successfully", projectId);
     }
 
     @Transactional
     public void addMemberToProject(String managerEmail, String projectId, String memberId) {
-        log.info("Manager {} adding member {} to project {}", managerEmail, memberId, projectId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -212,7 +194,6 @@ public class ProjectService {
             throw new ApplicationException("Can only add MEMBER users to projects");
         }
 
-        // Check if already a member
         if (projectMemberRepository.existsByProjectAndUser(project, member)) {
             throw new ApplicationException("User is already a member of this project");
         }
@@ -222,13 +203,10 @@ public class ProjectService {
         projectMember.setUser(member);
         projectMember.setRole(ProjectRole.MEMBER);
         projectMemberRepository.save(projectMember);
-
-        log.info("Member {} added to project {} successfully", memberId, projectId);
     }
 
     @Transactional
     public void removeMemberFromProject(String managerEmail, String projectId, String memberId) {
-        log.info("Manager {} removing member {} from project {}", managerEmail, memberId, projectId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
@@ -246,18 +224,15 @@ public class ProjectService {
         ProjectMember projectMember = projectMemberRepository.findByProjectAndUser(project, member)
                 .orElseThrow(() -> new ResourceNotFoundException("Member is not part of this project"));
 
-        // Cannot remove OWNER
         if (projectMember.getRole() == ProjectRole.OWNER) {
             throw new ApplicationException("Cannot remove project owner");
         }
 
         projectMemberRepository.delete(projectMember);
-        log.info("Member {} removed from project {} successfully", memberId, projectId);
     }
 
     @Transactional(readOnly = true)
     public List<UserResponse> getProjectMembers(String email, String projectId) {
-        log.info("User {} fetching members of project: {}", email, projectId);
 
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -265,7 +240,6 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with ID: " + projectId));
 
-        // Check access
         if (user.getRole() != RoleType.MANAGER) {
             boolean isMember = projectMemberRepository.existsByProjectAndUser(project, user);
             if (!isMember) {
@@ -281,7 +255,6 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public ProjectStats getProjectStats(String managerEmail, String projectId) {
-        log.info("Manager {} fetching stats for project: {}", managerEmail, projectId);
 
         User manager = userRepository.findByEmail(managerEmail.toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));

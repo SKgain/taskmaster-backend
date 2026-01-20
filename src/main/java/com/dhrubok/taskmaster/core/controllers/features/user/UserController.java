@@ -21,14 +21,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
+import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "User Operations", description = "User profile and account management")
-@SecurityRequirement(name = JWT_TOKEN)
+@SecurityRequirement(name = JWT)
 public class UserController {
 
     private final UserUserService userService;
@@ -37,18 +37,21 @@ public class UserController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
     @GetMapping("/profile")
     public ResponseEntity<Response> getProfile(Authentication authentication) {
-        log.info("GET /api/users/profile - User: {}", authentication.getName());
         return ResponseEntity.ok(userService.getUserProfile(authentication.getName()));
+    }
+
+    @Operation(summary = "Remove broad cast message")
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @PutMapping("/broadcast")
+    public ResponseEntity<Response> removeBroadCastMessage(Authentication authentication) {
+        return ResponseEntity.ok(userService.removeBroadCastMessage(authentication.getName()));
     }
 
     @Operation(summary = "Update user profile")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
     @PutMapping("/profile")
-    public ResponseEntity<Response> updateProfile(
-            Authentication authentication,
-            @Valid @RequestBody UpdateProfileRequest request) {
-
-        log.info("PUT /api/users/profile - User: {} updating profile", authentication.getName());
+    public ResponseEntity<Response> updateProfile(Authentication authentication,
+                                                  @Valid @RequestBody UpdateProfileRequest request) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -62,11 +65,8 @@ public class UserController {
     @Operation(summary = "Upload profile photo")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PostMapping("/profile/photo")
-    public ResponseEntity<Response> uploadProfilePhoto(
-            Authentication authentication,
-            @RequestParam("file") MultipartFile file) throws IOException {
-
-        log.info("POST /api/users/profile/photo - User: {} uploading photo", authentication.getName());
+    public ResponseEntity<Response> uploadProfilePhoto(Authentication authentication,
+                                                       @RequestParam("file") MultipartFile file) throws IOException {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -80,27 +80,23 @@ public class UserController {
     @Operation(summary = "Change password")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PostMapping("/change-password")
-    public ResponseEntity<Response> changePassword(
-            Authentication authentication,
-            @Valid @RequestBody ChangePasswordRequest request) {
-
-        log.info("POST /api/users/change-password - User: {}", authentication.getName());
+    public ResponseEntity<Response> changePassword(Authentication authentication,
+                                                   @Valid @RequestBody ChangePasswordRequest request) {
 
         userService.changePassword(authentication.getName(), request);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Password changed successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Password changed successfully",
+                        null)
         );
     }
 
-    // ========================================
-    // 🆕 NEW ENDPOINT - GET ALL USERS
-    // ========================================
     @Operation(summary = "Get all users (for project member assignment)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
     @GetMapping
     public ResponseEntity<Response> getAllUsers(Authentication authentication) {
-        log.info("GET /api/users - Requested by: {}", authentication.getName());
 
         try {
             return ResponseEntity.ok(
@@ -126,10 +122,12 @@ public class UserController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
     @GetMapping("/{id}")
     public ResponseEntity<Response> getUserById(@PathVariable String id) {
-        log.info("GET /api/users/{}", id);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "User retrieved successfully", userService.getUserById(id))
+                Response.getResponseEntity(
+                        true,
+                        "User retrieved successfully",
+                        userService.getUserById(id))
         );
     }
 
@@ -137,10 +135,11 @@ public class UserController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
     @GetMapping("/search")
     public ResponseEntity<Response> searchUsers(@RequestParam String query) {
-        log.info("GET /api/users/search?query={}", query);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Search results for: " + query, userService.searchUsers(query))
+                Response.getResponseEntity(
+                        true,
+                        "Search results for: " + query, userService.searchUsers(query))
         );
     }
 
@@ -148,10 +147,12 @@ public class UserController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
     @GetMapping("/active")
     public ResponseEntity<Response> getAllActiveUsers() {
-        log.info("GET /api/users/active");
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Active users retrieved", userService.getAllActiveUsers())
+                Response.getResponseEntity(
+                        true,
+                        "Active users retrieved",
+                        userService.getAllActiveUsers())
         );
     }
 }

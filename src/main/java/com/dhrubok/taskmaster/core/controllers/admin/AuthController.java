@@ -1,5 +1,7 @@
 package com.dhrubok.taskmaster.core.controllers.admin;
 
+import com.dhrubok.taskmaster.auth.constants.SecurityConstant;
+import com.dhrubok.taskmaster.common.constants.SuccessCode;
 import com.dhrubok.taskmaster.persistence.auth.models.RefreshTokenRequest;
 import com.dhrubok.taskmaster.persistence.auth.models.ResetPasswordRequest;
 import com.dhrubok.taskmaster.persistence.auth.models.SignInRequest;
@@ -36,7 +38,13 @@ public class AuthController {
     @PostMapping("/sign-up")
     public ResponseEntity<Response> signUp(@Valid @RequestBody SignUpRequest request) throws MessagingException, IOException {
 
-        return ResponseEntity.ok().body(userService.signUp(request));
+        return ResponseEntity.ok(
+                Response.getResponseEntity(
+                        true,
+                        SuccessCode.SUCCESS_USER_SIGN_UP,
+                        userService.signUp(request)
+                )
+        );
     }
 
     @Operation(summary = "Sign-up-Verify")
@@ -48,18 +56,16 @@ public class AuthController {
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
-                        "Your email has been successfully verified! Welcome to TaskMaster.",
+                        SuccessCode.SUCCESS_EMAIL_VERIFY,
                         null
                 )
         );
     }
 
-    @Operation(summary = "Sign-in")
-    @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
     @PostMapping("/sign-in")
     public ResponseEntity<Response> signIn(@Valid @RequestBody SignInRequest request) {
-
-        return ResponseEntity.ok().body(userService.signIn(request));
+        Response response = userService.signIn(request);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Resend Verification Email")
@@ -67,7 +73,13 @@ public class AuthController {
     @PostMapping("/resend-verification")
     public ResponseEntity<Response> resendVerification(@RequestParam String email) throws MessagingException, IOException {
 
-        return ResponseEntity.ok().body(userService.resendVerificationCode(email));
+        return ResponseEntity.ok(
+                Response.getResponseEntity(
+                        true,
+                        SuccessCode.SUCCESS_EMAIL_RESENT ,
+                        userService.resendVerificationCode(email)
+                )
+        );
     }
 
     @Operation(summary = "Forgot Password Request")
@@ -75,7 +87,13 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<Response> forgotPassword(@RequestParam String email) throws MessagingException, IOException {
 
-        return ResponseEntity.ok().body(userService.forgotPassword(email));
+        return ResponseEntity.ok(
+                Response.getResponseEntity(
+                        true,
+                        SuccessCode.SUCCESS_FORGET_PASSWORD_EMAIL_SENT,
+                        userService.forgotPassword(email)
+                )
+        );
     }
 
     @Operation(summary = "Reset Password")
@@ -83,17 +101,29 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<Response> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
 
-        return ResponseEntity.ok().body(userService.resetPassword(request));
+        return ResponseEntity.ok(
+                Response.getResponseEntity(
+                        true,
+                        SuccessCode.SUCCESS_FORGET_PASSWORD_EMAIL_RESENT,
+                        userService.resetPassword(request)
+                )
+        );
     }
 
     @Operation(summary = "Refresh Token")
     @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
     @PostMapping("/refresh-token")
     public ResponseEntity<Response> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok().body(userService.refreshToken(request));
+        return ResponseEntity.ok(
+                Response.getResponseEntity(
+                        true,
+                        SuccessCode.SUCCESS,
+                        userService.refreshToken(request)
+                )
+        );
     }
 
-    @Operation(summary = "User Logout", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "User Logout", security = @SecurityRequirement(name = SecurityConstant.JWT))
     @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
     @PostMapping("/logout")
     public ResponseEntity<Response> logout(
@@ -102,14 +132,16 @@ public class AuthController {
             Authentication authentication
     ) {
         if (authentication != null) {
-            userService.logout(authentication.getName()); //getName() returns email
+            userService.logout(authentication.getName());
         }
 
         SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
         logoutHandler.logout(request, response, authentication);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Logged out successfully", null)
+                Response.getResponseEntity(true,
+                        SuccessCode.SUCCESS_USER_SIGN_OUT,
+                        null)
         );
     }
 }

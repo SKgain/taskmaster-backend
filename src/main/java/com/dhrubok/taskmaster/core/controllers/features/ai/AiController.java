@@ -2,15 +2,19 @@ package com.dhrubok.taskmaster.core.controllers.features.ai;
 
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.features.ai.services.AiTaskService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/ai")
+@SecurityRequirement(name = JWT)
 public class AiController {
 
     private final AiTaskService aiTaskService;
@@ -31,7 +35,6 @@ public class AiController {
 
         String aiResponse = aiTaskService.generateTaskDescription(title);
 
-        // Wrap the string in a JSON object for the frontend
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,

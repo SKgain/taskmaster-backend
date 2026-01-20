@@ -18,14 +18,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
+import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT;
 
 @RestController
 @RequestMapping("/api/meetings")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Meeting Management", description = "Meeting scheduling and management operations")
-@SecurityRequirement(name = JWT_TOKEN)
+@SecurityRequirement(name = JWT)
 public class MeetingController {
 
     private final MeetingService meetingService;
@@ -34,11 +34,8 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
-    public ResponseEntity<Response> createMeeting(
-            Authentication authentication,
-            @Valid @RequestBody CreateMeetingRequest request) {
-
-        log.info("POST /api/meetings - Manager: {} creating meeting", authentication.getName());
+    public ResponseEntity<Response> createMeeting(Authentication authentication,
+                                                  @Valid @RequestBody CreateMeetingRequest request) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -54,8 +51,6 @@ public class MeetingController {
     @GetMapping
     public ResponseEntity<Response> getAllMeetings(Authentication authentication) {
 
-        log.info("GET /api/meetings - User: {}", authentication.getName());
-
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -68,11 +63,8 @@ public class MeetingController {
     @Operation(summary = "Get meetings by project")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<Response> getMeetingsByProject(
-            Authentication authentication,
-            @PathVariable String projectId) {
-
-        log.info("GET /api/meetings/project/{} - User: {}", projectId, authentication.getName());
+    public ResponseEntity<Response> getMeetingsByProject(Authentication authentication,
+                                                         @PathVariable String projectId) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -86,11 +78,8 @@ public class MeetingController {
     @Operation(summary = "Get meeting by ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/{meetingId}")
-    public ResponseEntity<Response> getMeetingById(
-            Authentication authentication,
-            @PathVariable String meetingId) {
-
-        log.info("GET /api/meetings/{} - User: {}", meetingId, authentication.getName());
+    public ResponseEntity<Response> getMeetingById(Authentication authentication,
+                                                   @PathVariable String meetingId) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -105,12 +94,9 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{meetingId}")
-    public ResponseEntity<Response> updateMeeting(
-            Authentication authentication,
-            @PathVariable String meetingId,
-            @Valid @RequestBody UpdateMeetingRequest request) {
-
-        log.info("PUT /api/meetings/{} - Manager: {}", meetingId, authentication.getName());
+    public ResponseEntity<Response> updateMeeting(Authentication authentication,
+                                                  @PathVariable String meetingId,
+                                                  @Valid @RequestBody UpdateMeetingRequest request) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -125,16 +111,16 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{meetingId}/cancel")
-    public ResponseEntity<Response> cancelMeeting(
-            Authentication authentication,
-            @PathVariable String meetingId) {
-
-        log.info("PATCH /api/meetings/{}/cancel - Manager: {}", meetingId, authentication.getName());
+    public ResponseEntity<Response> cancelMeeting(Authentication authentication,
+                                                  @PathVariable String meetingId) {
 
         meetingService.cancelMeeting(authentication.getName(), meetingId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Meeting cancelled successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Meeting cancelled successfully",
+                        null)
         );
     }
 
@@ -142,16 +128,16 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{meetingId}/complete")
-    public ResponseEntity<Response> completeMeeting(
-            Authentication authentication,
-            @PathVariable String meetingId) {
-
-        log.info("PATCH /api/meetings/{}/complete - Manager: {}", meetingId, authentication.getName());
+    public ResponseEntity<Response> completeMeeting(Authentication authentication,
+                                                    @PathVariable String meetingId) {
 
         meetingService.completeMeeting(authentication.getName(), meetingId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Meeting marked as completed", null)
+                Response.getResponseEntity(
+                        true,
+                        "Meeting marked as completed",
+                        null)
         );
     }
 
@@ -159,18 +145,17 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/{meetingId}/participants/{userId}")
-    public ResponseEntity<Response> addParticipant(
-            Authentication authentication,
-            @PathVariable String meetingId,
-            @PathVariable String userId) {
-
-        log.info("POST /api/meetings/{}/participants/{} - Manager: {}",
-                meetingId, userId, authentication.getName());
+    public ResponseEntity<Response> addParticipant(Authentication authentication,
+                                                   @PathVariable String meetingId,
+                                                   @PathVariable String userId) {
 
         meetingService.addParticipant(authentication.getName(), meetingId, userId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Participant added successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Participant added successfully",
+                        null)
         );
     }
 
@@ -178,18 +163,17 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{meetingId}/participants/{userId}")
-    public ResponseEntity<Response> removeParticipant(
-            Authentication authentication,
-            @PathVariable String meetingId,
-            @PathVariable String userId) {
-
-        log.info("DELETE /api/meetings/{}/participants/{} - Manager: {}",
-                meetingId, userId, authentication.getName());
+    public ResponseEntity<Response> removeParticipant(Authentication authentication,
+                                                      @PathVariable String meetingId,
+                                                      @PathVariable String userId) {
 
         meetingService.removeParticipant(authentication.getName(), meetingId, userId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Participant removed successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Participant removed successfully",
+                        null)
         );
     }
 
@@ -197,16 +181,16 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{meetingId}")
-    public ResponseEntity<Response> deleteMeeting(
-            Authentication authentication,
-            @PathVariable String meetingId) {
-
-        log.info("DELETE /api/meetings/{} - Manager: {}", meetingId, authentication.getName());
+    public ResponseEntity<Response> deleteMeeting(Authentication authentication,
+                                                  @PathVariable String meetingId) {
 
         meetingService.deleteMeeting(authentication.getName(), meetingId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Meeting deleted successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Meeting deleted successfully",
+                        null)
         );
     }
 
@@ -214,8 +198,6 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/upcoming")
     public ResponseEntity<Response> getUpcomingMeetings(Authentication authentication) {
-
-        log.info("GET /api/meetings/upcoming - User: {}", authentication.getName());
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -230,8 +212,6 @@ public class MeetingController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/past")
     public ResponseEntity<Response> getPastMeetings(Authentication authentication) {
-
-        log.info("GET /api/meetings/past - User: {}", authentication.getName());
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -248,8 +228,6 @@ public class MeetingController {
     @GetMapping("/stats")
     public ResponseEntity<Response> getMeetingStats(Authentication authentication) {
 
-        log.info("GET /api/meetings/stats - Manager: {}", authentication.getName());
-
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -262,11 +240,8 @@ public class MeetingController {
     @Operation(summary = "Search meetings by title or description")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @GetMapping("/search")
-    public ResponseEntity<Response> searchMeetings(
-            Authentication authentication,
-            @RequestParam String query) {
-
-        log.info("GET /api/meetings/search?query={} - User: {}", query, authentication.getName());
+    public ResponseEntity<Response> searchMeetings(Authentication authentication,
+                                                   @RequestParam String query) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(

@@ -20,14 +20,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
+import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT;
 
 @RestController
 @RequestMapping("/api/manager")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Manager Operations", description = "Manager-only endpoints for member management")
-@SecurityRequirement(name = JWT_TOKEN)
+@SecurityRequirement(name = JWT)
 public class ManagerController {
 
     private final MemberManagementService memberService;
@@ -36,12 +36,8 @@ public class ManagerController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/members")
-    public ResponseEntity<Response> createMember(
-            Authentication authentication,
-            @Valid @RequestBody CreateMemberRequest request) throws MessagingException, IOException {
-
-        log.info("POST /api/manager/members - Manager: {} creating member: {}",
-                authentication.getName(), request.getEmail());
+    public ResponseEntity<Response> createMember(Authentication authentication,
+                                                 @Valid @RequestBody CreateMemberRequest request) throws MessagingException, IOException {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -58,8 +54,6 @@ public class ManagerController {
     @GetMapping("/members")
     public ResponseEntity<Response> getAllMembers(Authentication authentication) {
 
-        log.info("GET /api/manager/members - Manager: {}", authentication.getName());
-
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -75,8 +69,6 @@ public class ManagerController {
     @GetMapping("/members/active")
     public ResponseEntity<Response> getActiveMembers(Authentication authentication) {
 
-        log.info("GET /api/manager/members/active - Manager: {}", authentication.getName());
-
         return ResponseEntity.ok(
                 Response.getResponseEntity(
                         true,
@@ -90,11 +82,8 @@ public class ManagerController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/members/{memberId}")
-    public ResponseEntity<Response> getMemberById(
-            Authentication authentication,
-            @PathVariable String memberId) {
-
-        log.info("GET /api/manager/members/{} - Manager: {}", memberId, authentication.getName());
+    public ResponseEntity<Response> getMemberById(Authentication authentication,
+                                                  @PathVariable String memberId) {
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(
@@ -109,16 +98,16 @@ public class ManagerController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/members/{memberId}")
-    public ResponseEntity<Response> deactivateMember(
-            Authentication authentication,
-            @PathVariable String memberId) {
-
-        log.info("DELETE /api/manager/members/{} - Manager: {}", memberId, authentication.getName());
+    public ResponseEntity<Response> deactivateMember(Authentication authentication,
+                                                     @PathVariable String memberId) {
 
         memberService.deactivateMember(authentication.getName(), memberId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Member deactivated successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Member deactivated successfully",
+                        null)
         );
     }
 
@@ -126,11 +115,16 @@ public class ManagerController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/members/{memberId}")
-    public ResponseEntity<Response> reactivateMember(Authentication authentication, @PathVariable String memberId) {
+    public ResponseEntity<Response> reactivateMember(Authentication authentication,
+                                                     @PathVariable String memberId) {
+
         memberService.reactivateMember(authentication.getName(), memberId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Member reactivated successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Member reactivated successfully",
+                        null)
         );
     }
 
@@ -138,17 +132,16 @@ public class ManagerController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/members/{memberId}/resend-verification")
-    public ResponseEntity<Response> resendVerification(
-            Authentication authentication,
-            @PathVariable String memberId) throws MessagingException, IOException {
-
-        log.info("POST /api/manager/members/{}/resend-verification - Manager: {}",
-                memberId, authentication.getName());
+    public ResponseEntity<Response> resendVerification(Authentication authentication,
+                                                       @PathVariable String memberId) throws MessagingException, IOException {
 
         memberService.resendMemberVerification(authentication.getName(), memberId);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Verification email resent successfully", null)
+                Response.getResponseEntity(
+                        true,
+                        "Verification email resent successfully",
+                        null)
         );
     }
 
@@ -157,8 +150,6 @@ public class ManagerController {
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/members/stats")
     public ResponseEntity<Response> getMemberStats(Authentication authentication) {
-
-        log.info("GET /api/manager/members/stats - Manager: {}", authentication.getName());
 
         return ResponseEntity.ok(
                 Response.getResponseEntity(

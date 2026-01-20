@@ -17,14 +17,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT_TOKEN;
+import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT;
 
 @RestController
 @RequestMapping("/api/users/settings")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "User Settings", description = "User notification and preference settings")
-@SecurityRequirement(name = JWT_TOKEN)
+@SecurityRequirement(name = JWT)
 public class UserSettingsController {
 
     private final UserSettingsService userSettingsService;
@@ -33,28 +33,30 @@ public class UserSettingsController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserSettingsResponse.class)))
     @GetMapping
     public ResponseEntity<Response> getSettings(Authentication authentication) {
-        log.info("GET /api/users/settings - User: {}", authentication.getName());
 
         UserSettingsResponse settings = userSettingsService.getUserSettings(authentication.getName());
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Settings retrieved successfully", settings)
+                Response.getResponseEntity(
+                        true,
+                        "Settings retrieved successfully",
+                        settings)
         );
     }
 
     @Operation(summary = "Update user settings")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserSettingsResponse.class)))
     @PutMapping
-    public ResponseEntity<Response> updateSettings(
-            Authentication authentication,
-            @Valid @RequestBody UpdateSettingsRequest request) {
-
-        log.info("PUT /api/users/settings - User: {} updating settings", authentication.getName());
+    public ResponseEntity<Response> updateSettings(Authentication authentication,
+                                                   @Valid @RequestBody UpdateSettingsRequest request) {
 
         UserSettingsResponse settings = userSettingsService.updateUserSettings(authentication.getName(), request);
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Settings updated successfully", settings)
+                Response.getResponseEntity(
+                        true,
+                        "Settings updated successfully",
+                        settings)
         );
     }
 
@@ -62,12 +64,14 @@ public class UserSettingsController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserSettingsResponse.class)))
     @PostMapping("/reset")
     public ResponseEntity<Response> resetSettings(Authentication authentication) {
-        log.info("POST /api/users/settings/reset - User: {}", authentication.getName());
 
         UserSettingsResponse settings = userSettingsService.resetToDefault(authentication.getName());
 
         return ResponseEntity.ok(
-                Response.getResponseEntity(true, "Settings reset to default successfully", settings)
+                Response.getResponseEntity(
+                        true,
+                        "Settings reset to default successfully",
+                        settings)
         );
     }
 }

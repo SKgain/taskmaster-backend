@@ -1,6 +1,6 @@
 package com.dhrubok.taskmaster.persistence.features.task.models;
 
-import com.dhrubok.taskmaster.persistence.features.task.enums.Priority;
+import com.dhrubok.taskmaster.persistence.features.task.enums.TaskPriority;
 import com.dhrubok.taskmaster.persistence.features.task.enums.TaskStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +16,7 @@ import java.time.LocalDate;
 public class UpdateTaskRequest {
     private String title;
     private String description;
-    private Priority priority;
+    private TaskPriority taskPriority;
     private LocalDate dueDate;
     private Integer estimatedHours;
     private TaskStatus status;

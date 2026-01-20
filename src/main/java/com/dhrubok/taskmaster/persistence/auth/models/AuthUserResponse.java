@@ -1,6 +1,7 @@
 package com.dhrubok.taskmaster.persistence.auth.models;
 
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
+import com.dhrubok.taskmaster.persistence.auth.enums.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ public class AuthUserResponse {
     private Boolean isActive;
     private Boolean isEnabled;
     private Boolean isEmailVerified;
+    private RoleType role;
 
     public AuthUserResponse(User user, UserDetails userDetails, Boolean isEmailVerified) {
         this.id = user.getId();
@@ -28,5 +30,6 @@ public class AuthUserResponse {
         this.phoneNumber = user.getPhoneNumber();
         this.profileImage = user.getProfileImage();
         this.isEmailVerified = isEmailVerified;
+        this.role = user.getRole();
     }
 }
