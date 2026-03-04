@@ -59,4 +59,6 @@ public interface UserRepository extends JpaRepository<User, String> {
     @Transactional
     @Query("UPDATE User u SET u.broadCastTitle = :title, u.broadCastMessage = :message WHERE u.isActive = true")
     int updateBroadcastForAll(@Param("title") String title, @Param("message") String message);
+
+    Optional<User> findAllByCreatedBy(String lowerCase);
 }

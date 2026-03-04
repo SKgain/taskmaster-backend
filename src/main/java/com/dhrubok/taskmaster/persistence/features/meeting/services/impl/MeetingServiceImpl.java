@@ -51,7 +51,6 @@ public class MeetingServiceImpl implements MeetingService {
         Meeting meeting = Meeting.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .scheduledTime(request.getScheduledTime())
                 .duration(request.getDuration())
                 .meetingLink(request.getMeetingLink())
                 .location(request.getLocation())
@@ -60,6 +59,12 @@ public class MeetingServiceImpl implements MeetingService {
                 .participants(new ArrayList<>())
                 .status(MeetingStatus.SCHEDULED)
                 .build();
+
+        if(request.getScheduledTime().isBefore(LocalDateTime.now())){
+            throw new ApplicationException("Time must be in future");
+        } else {
+            meeting.setScheduledTime(request.getScheduledTime());
+        }
 
         if (request.getParticipantIds() != null && !request.getParticipantIds().isEmpty()) {
             List<User> participants = userRepository.findAllById(
@@ -162,7 +167,8 @@ public class MeetingServiceImpl implements MeetingService {
 
         if (request.getTitle() != null) meeting.setTitle(request.getTitle());
         if (request.getDescription() != null) meeting.setDescription(request.getDescription());
-        if (request.getScheduledTime() != null) meeting.setScheduledTime(request.getScheduledTime());
+        if (request.getScheduledTime() != null && request.getScheduledTime().isAfter(LocalDateTime.now()))
+            meeting.setScheduledTime(request.getScheduledTime());
         if (request.getDuration() != null) meeting.setDuration(request.getDuration());
         if (request.getMeetingLink() != null) meeting.setMeetingLink(request.getMeetingLink());
         if (request.getLocation() != null) meeting.setLocation(request.getLocation());

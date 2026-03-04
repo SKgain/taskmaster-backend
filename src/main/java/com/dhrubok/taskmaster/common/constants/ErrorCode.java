@@ -9,8 +9,10 @@ public final class ErrorCode {
     public static String ERROR_VERIFICATION_REFRESH_TOKEN_EXPIRED = "Refresh token expired";
 
     public static String ERROR_ACCOUNT_IS_NOT_VERIFIED = "Account is not verified. Please check your email.";
-    public static String ERROR_ACCOUNT_IS_DISABLED = "Account is disable. Please check contact to the admin.";
+    public static String ERROR_ACCOUNT_IS_DISABLED = "Account is disable. Please contact to the admin.";
     public static String ERROR_ACCOUNT_ALREADY_VERIFIED = "Account is already verified. Please Sign In.";
+
+    public static String ERROR_MEMBER_ACCOUNT_IS_DISABLED = "Account is disable. Please contact to your manager.";
 
     public static String ERROR_CAN_NOT_CHANGE_ADMIN_ROLE = "Cannot change ADMIN role";
     public static String ERROR_CAN_NOT_DEACTIVATE_MANAGER = "Cannot deactivate ADMIN users";

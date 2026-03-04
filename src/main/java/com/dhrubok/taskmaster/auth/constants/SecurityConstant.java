@@ -9,7 +9,7 @@ public final class SecurityConstant {
     );
 
     public static final String JWT_ALGORITHM = "HmacSHA256";
-    public static final long JWT_EXPIRATION_MILLIS = 1000 * 60 * 60; // Access Token = 60 Minutes
+    public static final long JWT_EXPIRATION_MILLIS = 1000 * 60 * 120; // Access Token = 120 Minutes
     public static final long REFRESH_EXPIRATION_MILLIS = 1000 * 60 * 60 * 24 * 7; // Refresh Token = 7 Days
 
     public static final String AUTHORIZATION_HEADER = "Authorization";

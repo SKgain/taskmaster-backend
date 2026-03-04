@@ -41,17 +41,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // FIX 1: Change "/ws" to "/api/ws" to match your frontend URL
         registry.addEndpoint("/api/ws")
-                // FIX 2: Use setAllowedOriginPatterns("*") for broader access during dev
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 
-    // ... configureClientInboundChannel remains exactly the same ...
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        // Keep your existing code here
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {

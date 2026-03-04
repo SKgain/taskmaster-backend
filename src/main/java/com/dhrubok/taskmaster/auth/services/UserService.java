@@ -199,7 +199,11 @@ public class UserService {
                 User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new ApplicationException(
                         ErrorCode.ERROR_USER_NOT_FOUND));
 
-                if (!user.getIsActive()) {
+                if (!user.getIsActive() && user.getRole().equals(RoleType.MEMBER)) {
+                    throw new ApplicationException(ErrorCode.ERROR_MEMBER_ACCOUNT_IS_DISABLED);
+                }
+
+                if (!user.getIsActive() && user.getRole().equals(RoleType.MANAGER)) {
                     throw new ApplicationException(ErrorCode.ERROR_ACCOUNT_IS_DISABLED);
                 }
 

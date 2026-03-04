@@ -8,6 +8,7 @@ import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import com.dhrubok.taskmaster.persistence.auth.enums.RoleType;
 import com.dhrubok.taskmaster.persistence.auth.repositories.UserRepository;
 import com.dhrubok.taskmaster.persistence.features.project.entities.Project;
+import com.dhrubok.taskmaster.persistence.features.project.enums.ProjectStatus;
 import com.dhrubok.taskmaster.persistence.features.project.repositories.ProjectRepository;
 import com.dhrubok.taskmaster.persistence.features.projectmember.repositories.ProjectMemberRepository;
 import com.dhrubok.taskmaster.persistence.features.task.entities.Task;
@@ -77,6 +78,12 @@ public class TaskService {
         task.setAssignedTo(assignedMember);
 
         taskRepository.save(task);
+
+        if (project.getStatus().equals(ProjectStatus.COMPLETED)) {
+            project.setStatus(ProjectStatus.ACTIVE);
+
+            projectRepository.save(project);
+        }
 
         try {
             String taskUrl = frontendUrl + "/task-details.html?id=" + task.getId();
@@ -279,6 +286,10 @@ public class TaskService {
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found with ID: " + taskId));
+
+        if(task.getStatus().equals(TaskStatus.IN_PROGRESS)){
+            throw new ApplicationException("Cannot delete running task");
+        }
 
         taskRepository.delete(task);
     }
