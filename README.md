@@ -453,9 +453,12 @@ SLF4J with `@Slf4j` (Lombok) is used consistently across all controllers and ser
 A custom `@ApiLog` annotation powered by **Spring AOP** provides structured per-request tracing on any controller method:
 
 ```java
-@ApiLog("Create new task")
-@PostMapping
-public ResponseEntity<Response> createTask(...) { ... }
+    @Operation(summary = "Create a new task (Manager only)")
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
+    @PreAuthorize("hasRole('MANAGER')")
+    @PostMapping
+    public ResponseEntity<Response> createTask(@Valid @RequestBody CreateTaskRequest request) { ... }
 ```
 
 Each annotated call automatically logs:
