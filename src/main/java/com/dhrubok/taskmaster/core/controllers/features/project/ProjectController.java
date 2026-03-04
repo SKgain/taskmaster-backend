@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.core.controllers.features.project;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.features.project.models.CreateProjectRequest;
 import com.dhrubok.taskmaster.persistence.features.project.models.UpdateProjectRequest;
@@ -32,6 +33,7 @@ public class ProjectController {
 
     @Operation(summary = "Create a new project (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
     public ResponseEntity<Response> createProject(Authentication authentication,
@@ -48,6 +50,7 @@ public class ProjectController {
 
     @Operation(summary = "Get all projects for current user")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping
     public ResponseEntity<Response> getAllProjects(Authentication authentication) {
 
@@ -62,6 +65,7 @@ public class ProjectController {
 
     @Operation(summary = "Get project by ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/{projectId}")
     public ResponseEntity<Response> getProjectById(Authentication authentication,
                                                    @PathVariable String projectId) {
@@ -77,6 +81,7 @@ public class ProjectController {
 
     @Operation(summary = "Update project (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{projectId}")
     public ResponseEntity<Response> updateProject(Authentication authentication,
@@ -94,6 +99,7 @@ public class ProjectController {
 
     @Operation(summary = "Archive project (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{projectId}/archive")
     public ResponseEntity<Response> archiveProject(Authentication authentication,
@@ -111,6 +117,7 @@ public class ProjectController {
 
     @Operation(summary = "Delete project (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{projectId}")
     public ResponseEntity<Response> deleteProject(Authentication authentication,
@@ -128,6 +135,7 @@ public class ProjectController {
 
     @Operation(summary = "Add member to project (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/{projectId}/members/{memberId}")
     public ResponseEntity<Response> addMemberToProject(Authentication authentication,
@@ -146,6 +154,7 @@ public class ProjectController {
 
     @Operation(summary = "Remove member from project (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{projectId}/members/{memberId}")
     public ResponseEntity<Response> removeMemberFromProject(Authentication authentication,
@@ -164,6 +173,7 @@ public class ProjectController {
 
     @Operation(summary = "Get all members of a project")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/{projectId}/members")
     public ResponseEntity<Response> getProjectMembers(Authentication authentication,
                                                       @PathVariable String projectId) {
@@ -179,6 +189,7 @@ public class ProjectController {
 
     @Operation(summary = "Get project statistics (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/{projectId}/stats")
     public ResponseEntity<Response> getProjectStats(Authentication authentication,

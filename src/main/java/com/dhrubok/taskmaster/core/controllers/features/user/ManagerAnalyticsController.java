@@ -1,8 +1,14 @@
 package com.dhrubok.taskmaster.core.controllers.features.user;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.models.Response;
+import com.dhrubok.taskmaster.persistence.features.task.models.TaskActivityResponse;
 import com.dhrubok.taskmaster.persistence.features.user.services.ManagerAnalyticsService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +32,10 @@ import static com.dhrubok.taskmaster.auth.constants.SecurityConstant.JWT;
 public class ManagerAnalyticsController {
     private final ManagerAnalyticsService analyticsService;
 
-    @GetMapping("/dashboard")
     @Operation(summary = "Get complete dashboard overview")
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = TaskActivityResponse.class)))
+    @ApiLog
+    @GetMapping("/dashboard")
     public ResponseEntity<Response> getDashboard(Authentication authentication) {
         return ResponseEntity.ok(Response.getResponseEntity(
                 true,
@@ -36,8 +44,10 @@ public class ManagerAnalyticsController {
         ));
     }
 
-    @GetMapping("/projects/progress")
     @Operation(summary = "Get all projects progress")
+    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = TaskActivityResponse.class))))
+    @ApiLog
+    @GetMapping("/projects/progress")
     public ResponseEntity<Response> getProjectsProgress(Authentication authentication) {
         return ResponseEntity.ok(Response.getResponseEntity(
                 true,
@@ -46,8 +56,10 @@ public class ManagerAnalyticsController {
         ));
     }
 
-    @GetMapping("/tasks/priority-analysis")
     @Operation(summary = "Get task priority distribution and analysis")
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = TaskActivityResponse.class)))
+    @ApiLog
+    @GetMapping("/tasks/priority-analysis")
     public ResponseEntity<Response> getTaskPriorityAnalysis(Authentication authentication) {
         return ResponseEntity.ok(Response.getResponseEntity(
                 true,
@@ -56,8 +68,10 @@ public class ManagerAnalyticsController {
         ));
     }
 
-    @GetMapping("/tasks/upcoming-deadlines")
     @Operation(summary = "Get upcoming task deadlines (next 7 days)")
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = TaskActivityResponse.class)))
+    @ApiLog
+    @GetMapping("/tasks/upcoming-deadlines")
     public ResponseEntity<Response> getUpcomingDeadlines(Authentication authentication) {
         return ResponseEntity.ok(Response.getResponseEntity(
                 true,

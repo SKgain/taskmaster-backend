@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.core.controllers.features.task;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.features.task.entities.TaskActivity;
 import com.dhrubok.taskmaster.persistence.features.task.models.CreateTaskRequest;
@@ -39,6 +40,7 @@ public class TaskController {
 
     @Operation(summary = "Create a new task (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
     public ResponseEntity<Response> createTask(Authentication authentication,
@@ -54,6 +56,7 @@ public class TaskController {
 
     @Operation(summary = "Get all tasks for current user")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping
     public ResponseEntity<Response> getAllTasks(Authentication authentication) {
 
@@ -68,6 +71,7 @@ public class TaskController {
 
     @Operation(summary = "Get tasks by project")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/project/{projectId}")
     public ResponseEntity<Response> getTasksByProject(Authentication authentication,
                                                       @PathVariable String projectId) {
@@ -83,6 +87,7 @@ public class TaskController {
 
     @Operation(summary = "Get task by ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/{taskId}")
     public ResponseEntity<Response> getTaskById(Authentication authentication,
                                                 @PathVariable String taskId) {
@@ -98,6 +103,7 @@ public class TaskController {
 
     @Operation(summary = "Update task (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{taskId}")
     public ResponseEntity<Response> updateTask(Authentication authentication,
@@ -115,6 +121,7 @@ public class TaskController {
 
     @Operation(summary = "Update task status (Member can update their own tasks)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PatchMapping("/{taskId}/status")
     public ResponseEntity<Response> updateTaskStatus(Authentication authentication,
                                                      @PathVariable String taskId,
@@ -130,6 +137,7 @@ public class TaskController {
 
     @Operation(summary = "Reassign task to another member (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{taskId}/assign/{memberId}")
     public ResponseEntity<Response> reassignTask(Authentication authentication,
@@ -148,6 +156,7 @@ public class TaskController {
 
     @Operation(summary = "Delete task (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Response> deleteTask(Authentication authentication,
@@ -165,6 +174,7 @@ public class TaskController {
 
     @Operation(summary = "Get tasks assigned to current user (Member/Manager)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/my-tasks")
     public ResponseEntity<Response> getMyTasks(Authentication authentication) {
 
@@ -179,6 +189,7 @@ public class TaskController {
 
     @Operation(summary = "Get overdue tasks (Manager sees all, Member sees own)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/overdue")
     public ResponseEntity<Response> getOverdueTasks(Authentication authentication) {
 
@@ -193,6 +204,7 @@ public class TaskController {
 
     @Operation(summary = "Get task statistics (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/stats")
     public ResponseEntity<Response> getTaskStats(Authentication authentication) {
@@ -208,6 +220,7 @@ public class TaskController {
 
     @Operation(summary = "Search tasks by title or description")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/search")
     public ResponseEntity<Response> searchTasks(Authentication authentication,
                                                 @RequestParam String query) {
@@ -221,7 +234,9 @@ public class TaskController {
         );
     }
 
+    @Operation(summary = "Get task activities by task id")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = TaskActivityResponse.class)))
+    @ApiLog
     @GetMapping("/{taskId}/activities")
     public ResponseEntity<Response> getTaskActivities(@PathVariable String taskId) {
 

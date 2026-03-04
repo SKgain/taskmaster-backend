@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.core.controllers.admin;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.system.entities.SystemConfig;
 import com.dhrubok.taskmaster.persistence.system.models.SystemConfigDTO;
@@ -34,6 +35,7 @@ public class AdminConfigController {
     @Operation(summary = "Get current system configuration")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = SystemConfig.class)))
     @GetMapping
+    @ApiLog
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Response> getSystemConfig(Authentication authentication) {
         try {
@@ -60,6 +62,7 @@ public class AdminConfigController {
     @Operation(summary = "Update system configuration")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = SystemConfig.class)))
     @PutMapping
+    @ApiLog
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Response> updateSystemConfig(Authentication authentication,
                                                        @Valid @RequestBody SystemConfigDTO configData) {
@@ -95,6 +98,7 @@ public class AdminConfigController {
     @Operation(summary = "Reset system configuration to defaults")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = SystemConfig.class)))
     @PostMapping("/reset")
+    @ApiLog
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Response> resetSystemConfig(Authentication authentication) {
 

@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.core.controllers.features.chat;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.constants.ErrorCode;
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
@@ -7,7 +8,11 @@ import com.dhrubok.taskmaster.persistence.auth.repositories.UserRepository;
 import com.dhrubok.taskmaster.persistence.features.chat.entities.ChatMessage;
 import com.dhrubok.taskmaster.persistence.features.chat.repositories.ChatMessageRepository;
 import com.dhrubok.taskmaster.persistence.features.chat.services.ChatService;
+import com.dhrubok.taskmaster.persistence.features.user.services.BaseUserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -41,34 +46,14 @@ public class ChatController {
     private final ChatMessageRepository chatRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatService chatService;
-    private final UserRepository userRepository;
-
-    private User getAuthenticatedUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return null;
-        }
-
-        String identifier = auth.getName();
-
-        Optional<User> user = userRepository.findById(identifier);
-        if (user.isPresent()) return user.get();
-
-        user = userRepository.findByUsername(identifier);
-        if (user.isPresent()) return user.get();
-
-        user = userRepository.findByEmail(identifier);
-        return user.orElse(null);
-
-    }
+    private final BaseUserService baseUserService;
 
     @Operation(summary = "Get chat history for a project")
+    @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
+    @ApiLog
     @GetMapping("/history/{projectId}")
-    @ResponseBody
     public ResponseEntity<Response> getChatHistory(@PathVariable String projectId) {
-
-        User user = getAuthenticatedUser();
+        User user = baseUserService.getAuthenticatedUser();
 
         if (user == null) {
             return ResponseEntity.status(401).body(Response.getResponseEntity(
@@ -100,6 +85,9 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "Send message")
+    @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
+    @ApiLog
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
         try {
@@ -126,6 +114,9 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "Handel typing")
+    @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
+    @ApiLog
     @MessageMapping("/chat.typing")
     public void handleTyping(@Payload Map<String, Object> typingData) {
         try {
@@ -138,10 +129,13 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "Update message")
+    @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
+    @ApiLog
     @PutMapping("/messages/{messageId}")
-    @ResponseBody
     public ResponseEntity<Response> updateMessage(@PathVariable String messageId, @RequestBody Map<String, String> payload) {
-        User user = getAuthenticatedUser();
+        User user = baseUserService.getAuthenticatedUser();
+
         if (user == null) return ResponseEntity.status(401).build();
 
         try {
@@ -166,10 +160,13 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "Delete message")
+    @ApiResponse(content = @Content(schema = @Schema(implementation = Response.class)), responseCode = "200")
+    @ApiLog
     @DeleteMapping("/messages/{messageId}")
-    @ResponseBody
     public ResponseEntity<Response> deleteMessage(@PathVariable String messageId) {
-        User user = getAuthenticatedUser();
+        User user = baseUserService.getAuthenticatedUser();
+
         if (user == null) return ResponseEntity.status(401).build();
 
         try {

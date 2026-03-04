@@ -1,9 +1,11 @@
 package com.dhrubok.taskmaster.core.controllers.features.user;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.features.user.models.CreateMemberRequest;
 import com.dhrubok.taskmaster.persistence.features.user.services.MemberManagementService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,6 +36,7 @@ public class ManagerController {
 
     @Operation(summary = "Create a new MEMBER")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/members")
     public ResponseEntity<Response> createMember(Authentication authentication,
@@ -49,7 +52,8 @@ public class ManagerController {
     }
 
     @Operation(summary = "Get all members")
-    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Response.class))))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/members")
     public ResponseEntity<Response> getAllMembers(Authentication authentication) {
@@ -64,7 +68,8 @@ public class ManagerController {
     }
 
     @Operation(summary = "Get active members")
-    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Response.class))))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/members/active")
     public ResponseEntity<Response> getActiveMembers(Authentication authentication) {
@@ -80,6 +85,7 @@ public class ManagerController {
 
     @Operation(summary = "Get member by ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/members/{memberId}")
     public ResponseEntity<Response> getMemberById(Authentication authentication,
@@ -96,6 +102,7 @@ public class ManagerController {
 
     @Operation(summary = "Deactivate a member")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/members/{memberId}")
     public ResponseEntity<Response> deactivateMember(Authentication authentication,
@@ -113,6 +120,7 @@ public class ManagerController {
 
     @Operation(summary = "Reactivate a member")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/members/{memberId}")
     public ResponseEntity<Response> reactivateMember(Authentication authentication,
@@ -130,6 +138,7 @@ public class ManagerController {
 
     @Operation(summary = "Resend verification email")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/members/{memberId}/resend-verification")
     public ResponseEntity<Response> resendVerification(Authentication authentication,
@@ -147,6 +156,7 @@ public class ManagerController {
 
     @Operation(summary = "Get member statistics")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/members/stats")
     public ResponseEntity<Response> getMemberStats(Authentication authentication) {

@@ -1,4 +1,4 @@
-package com.dhrubok.taskmaster.persistence.features.meeting;
+package com.dhrubok.taskmaster.persistence.features.meeting.repositories;
 
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import com.dhrubok.taskmaster.persistence.features.meeting.entities.nodes.Meeting;

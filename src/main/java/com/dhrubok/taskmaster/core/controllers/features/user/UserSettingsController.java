@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.core.controllers.features.user;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.features.user.models.UpdateSettingsRequest;
 import com.dhrubok.taskmaster.persistence.features.user.models.UserSettingsResponse;
@@ -31,6 +32,7 @@ public class UserSettingsController {
 
     @Operation(summary = "Get user settings")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserSettingsResponse.class)))
+    @ApiLog
     @GetMapping
     public ResponseEntity<Response> getSettings(Authentication authentication) {
 
@@ -46,6 +48,7 @@ public class UserSettingsController {
 
     @Operation(summary = "Update user settings")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserSettingsResponse.class)))
+    @ApiLog
     @PutMapping
     public ResponseEntity<Response> updateSettings(Authentication authentication,
                                                    @Valid @RequestBody UpdateSettingsRequest request) {
@@ -62,6 +65,7 @@ public class UserSettingsController {
 
     @Operation(summary = "Reset settings to default")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserSettingsResponse.class)))
+    @ApiLog
     @PostMapping("/reset")
     public ResponseEntity<Response> resetSettings(Authentication authentication) {
 

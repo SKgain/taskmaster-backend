@@ -1,5 +1,6 @@
 package com.dhrubok.taskmaster.core.controllers.features.meeting;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.features.meeting.models.CreateMeetingRequest;
 import com.dhrubok.taskmaster.persistence.features.meeting.models.UpdateMeetingRequest;
@@ -32,6 +33,7 @@ public class MeetingController {
 
     @Operation(summary = "Create a new meeting (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
     public ResponseEntity<Response> createMeeting(Authentication authentication,
@@ -48,6 +50,7 @@ public class MeetingController {
 
     @Operation(summary = "Get all meetings for current user")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping
     public ResponseEntity<Response> getAllMeetings(Authentication authentication) {
 
@@ -62,6 +65,7 @@ public class MeetingController {
 
     @Operation(summary = "Get meetings by project")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/project/{projectId}")
     public ResponseEntity<Response> getMeetingsByProject(Authentication authentication,
                                                          @PathVariable String projectId) {
@@ -77,6 +81,7 @@ public class MeetingController {
 
     @Operation(summary = "Get meeting by ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/{meetingId}")
     public ResponseEntity<Response> getMeetingById(Authentication authentication,
                                                    @PathVariable String meetingId) {
@@ -92,6 +97,7 @@ public class MeetingController {
 
     @Operation(summary = "Update meeting (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{meetingId}")
     public ResponseEntity<Response> updateMeeting(Authentication authentication,
@@ -109,6 +115,7 @@ public class MeetingController {
 
     @Operation(summary = "Cancel meeting (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{meetingId}/cancel")
     public ResponseEntity<Response> cancelMeeting(Authentication authentication,
@@ -126,6 +133,7 @@ public class MeetingController {
 
     @Operation(summary = "Mark meeting as completed (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{meetingId}/complete")
     public ResponseEntity<Response> completeMeeting(Authentication authentication,
@@ -143,6 +151,7 @@ public class MeetingController {
 
     @Operation(summary = "Add participant to meeting (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/{meetingId}/participants/{userId}")
     public ResponseEntity<Response> addParticipant(Authentication authentication,
@@ -161,6 +170,7 @@ public class MeetingController {
 
     @Operation(summary = "Remove participant from meeting (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{meetingId}/participants/{userId}")
     public ResponseEntity<Response> removeParticipant(Authentication authentication,
@@ -179,6 +189,7 @@ public class MeetingController {
 
     @Operation(summary = "Delete meeting (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{meetingId}")
     public ResponseEntity<Response> deleteMeeting(Authentication authentication,
@@ -196,6 +207,7 @@ public class MeetingController {
 
     @Operation(summary = "Get upcoming meetings for current user")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/upcoming")
     public ResponseEntity<Response> getUpcomingMeetings(Authentication authentication) {
 
@@ -210,6 +222,7 @@ public class MeetingController {
 
     @Operation(summary = "Get past meetings for current user")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/past")
     public ResponseEntity<Response> getPastMeetings(Authentication authentication) {
 
@@ -224,6 +237,7 @@ public class MeetingController {
 
     @Operation(summary = "Get meeting statistics (Manager only)")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/stats")
     public ResponseEntity<Response> getMeetingStats(Authentication authentication) {
@@ -239,6 +253,7 @@ public class MeetingController {
 
     @Operation(summary = "Search meetings by title or description")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @GetMapping("/search")
     public ResponseEntity<Response> searchMeetings(Authentication authentication,
                                                    @RequestParam String query) {

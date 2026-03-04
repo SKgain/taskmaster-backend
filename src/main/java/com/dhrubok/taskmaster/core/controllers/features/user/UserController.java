@@ -1,11 +1,13 @@
 package com.dhrubok.taskmaster.core.controllers.features.user;
 
+import com.dhrubok.taskmaster.common.annotations.ApiLog;
 import com.dhrubok.taskmaster.common.models.Response;
 import com.dhrubok.taskmaster.persistence.auth.models.ChangePasswordRequest;
 import com.dhrubok.taskmaster.persistence.features.user.models.UpdateProfileRequest;
 import com.dhrubok.taskmaster.persistence.features.user.models.UserResponse;
 import com.dhrubok.taskmaster.persistence.features.user.services.UserUserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,6 +37,7 @@ public class UserController {
 
     @Operation(summary = "Get current user profile")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiLog
     @GetMapping("/profile")
     public ResponseEntity<Response> getProfile(Authentication authentication) {
         return ResponseEntity.ok(userService.getUserProfile(authentication.getName()));
@@ -42,6 +45,7 @@ public class UserController {
 
     @Operation(summary = "Remove broad cast message")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiLog
     @PutMapping("/broadcast")
     public ResponseEntity<Response> removeBroadCastMessage(Authentication authentication) {
         return ResponseEntity.ok(userService.removeBroadCastMessage(authentication.getName()));
@@ -49,6 +53,7 @@ public class UserController {
 
     @Operation(summary = "Update user profile")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiLog
     @PutMapping("/profile")
     public ResponseEntity<Response> updateProfile(Authentication authentication,
                                                   @Valid @RequestBody UpdateProfileRequest request) {
@@ -64,6 +69,7 @@ public class UserController {
 
     @Operation(summary = "Upload profile photo")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PostMapping("/profile/photo")
     public ResponseEntity<Response> uploadProfilePhoto(Authentication authentication,
                                                        @RequestParam("file") MultipartFile file) throws IOException {
@@ -79,6 +85,7 @@ public class UserController {
 
     @Operation(summary = "Change password")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+    @ApiLog
     @PostMapping("/change-password")
     public ResponseEntity<Response> changePassword(Authentication authentication,
                                                    @Valid @RequestBody ChangePasswordRequest request) {
@@ -94,7 +101,8 @@ public class UserController {
     }
 
     @Operation(summary = "Get all users (for project member assignment)")
-    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserResponse.class))))
+    @ApiLog
     @GetMapping
     public ResponseEntity<Response> getAllUsers(Authentication authentication) {
 
@@ -120,6 +128,7 @@ public class UserController {
 
     @Operation(summary = "Get user by ID")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiLog
     @GetMapping("/{id}")
     public ResponseEntity<Response> getUserById(@PathVariable String id) {
 
@@ -132,7 +141,8 @@ public class UserController {
     }
 
     @Operation(summary = "Search users")
-    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserResponse.class))))
+    @ApiLog
     @GetMapping("/search")
     public ResponseEntity<Response> searchUsers(@RequestParam String query) {
 
@@ -144,7 +154,8 @@ public class UserController {
     }
 
     @Operation(summary = "Get all active users")
-    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserResponse.class))))
+    @ApiLog
     @GetMapping("/active")
     public ResponseEntity<Response> getAllActiveUsers() {
 

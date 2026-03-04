@@ -4,7 +4,7 @@ import com.dhrubok.taskmaster.common.exceptions.ApplicationException;
 import com.dhrubok.taskmaster.common.services.EmailService;
 import com.dhrubok.taskmaster.persistence.auth.entities.User;
 import com.dhrubok.taskmaster.persistence.auth.repositories.UserRepository;
-import com.dhrubok.taskmaster.persistence.features.meeting.MeetingRepository;
+import com.dhrubok.taskmaster.persistence.features.meeting.repositories.MeetingRepository;
 import com.dhrubok.taskmaster.persistence.features.meeting.entities.nodes.Meeting;
 import com.dhrubok.taskmaster.persistence.features.meeting.enums.MeetingStatus;
 import com.dhrubok.taskmaster.persistence.features.meeting.models.CreateMeetingRequest;
