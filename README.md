@@ -54,7 +54,7 @@ Built with **developer experience and production-readiness in mind**: environmen
 | 📊 Analytics | Manager dashboards, project progress, priority analysis, deadline tracking |
 | 📧 Email | SMTP-based transactional emails via Gmail |
 | 🐳 Docker | Multi-service Docker Compose with PostgreSQL |
-| 🔍 Logging | Structured console + file logging, profile-aware verbosity |
+| 🔍 Logging | Structured console + file logging, profile-aware verbosity, AOP-based `@ApiLog` tracing |
 | 📖 Docs | Auto-generated Swagger/OpenAPI UI |
 
 ---
@@ -90,6 +90,7 @@ Built with **developer experience and production-readiness in mind**: environmen
 **Developer Experience**
 - Lombok — boilerplate-free models and services
 - SLF4J + Logback — structured, profile-aware logging
+- Spring AOP — custom `@ApiLog` annotation for declarative request/response tracing
 - SpringDoc OpenAPI (Swagger UI)
 - Dev/Prod Spring profiles
 - Jakarta Bean Validation
@@ -118,6 +119,10 @@ com.dhrubok.taskmaster/
 │       └── UserService                 # Sign-up, sign-in, verify, refresh, logout, password flows
 │
 ├── common/                             # Cross-Cutting Concerns
+│   ├── annotations/
+│   │   └── ApiLog                      # Custom method annotation — marks endpoints for AOP logging
+│   ├── aspect/
+│   │   └── LoggingAspect               # @Around advice — logs HTTP method, path, args, response, exec time
 │   ├── configs/
 │   │   ├── AppConfig                   # ModelMapper, RestTemplate beans
 │   │   ├── AuditingConfig              # JPA Auditing — auto-sets createdBy / updatedBy
@@ -442,6 +447,38 @@ Logs follow the pattern:
 ```
 
 SLF4J with `@Slf4j` (Lombok) is used consistently across all controllers and services.
+
+### 🎯 AOP Request Tracing — `@ApiLog`
+
+A custom `@ApiLog` annotation powered by **Spring AOP** provides structured per-request tracing on any controller method:
+
+```java
+@ApiLog("Create new task")
+@PostMapping
+public ResponseEntity<Response> createTask(...) { ... }
+```
+
+Each annotated call automatically logs:
+
+- Timestamp, HTTP method, API path, method name, description
+- Serialized request parameters and body (non-primitive args)
+- Execution time in milliseconds
+- Response payload or error message on failure
+
+```
+========== API CALL START ==========
+Timestamp: 2025-01-15T14:32:01.123
+HTTP Method: POST
+API Path: []
+Method Name: createTask
+Description: Create new task
+Request Body: {"title":"Fix login bug","projectId":"proj-456"}
+Execution Time: 47 ms
+Response Status: SUCCESS
+========== API CALL END ==========
+```
+
+This is opt-in per method via `@ApiLog`, keeping noise low while giving full visibility where it matters.
 
 ---
 
