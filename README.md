@@ -16,6 +16,7 @@ A production-grade, full-featured **task and team management REST API** built wi
 ## 📌 Table of Contents
 
 - [Overview](#-overview)
+- [Screenshots](#-screenshots)
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Architecture](#-architecture)
@@ -37,6 +38,46 @@ A production-grade, full-featured **task and team management REST API** built wi
 TaskMaster is a robust backend system for managing teams, projects, tasks, and meetings. It supports three user roles — **Admin**, **Manager**, and **Member** — each with distinct permissions enforced at the method level using Spring Security.
 
 Built with **developer experience and production-readiness in mind**: environment-separated configs, structured logging, containerized deployment, and Swagger docs out of the box.
+
+---
+
+---
+
+## 📸 Screenshots
+
+**Login**
+
+![Login](photos/login.png)
+
+---
+
+**Manager Dashboard**
+
+![Manager Dashboard](photos/manager_dash.png)
+
+---
+
+**Employee Dashboard**
+
+![Employee Dashboard](photos/employee_dash.png)
+
+---
+
+**Real-Time Chat**
+
+![Chat](photos/chats.png)
+
+---
+
+**Meetings**
+
+![Meetings](photos/meeting.png)
+
+---
+
+**Notifications**
+
+![Notifications](photos/notification.png)
 
 ---
 
@@ -453,12 +494,12 @@ SLF4J with `@Slf4j` (Lombok) is used consistently across all controllers and ser
 A custom `@ApiLog` annotation powered by **Spring AOP** provides structured per-request tracing on any controller method:
 
 ```java
-    @Operation(summary = "Create a new task (Manager only)")
-    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
-    @ApiLog
-    @PreAuthorize("hasRole('MANAGER')")
-    @PostMapping
-    public ResponseEntity<Response> createTask(@Valid @RequestBody CreateTaskRequest request) { ... }
+@Operation(summary = "Create a new task (Manager only)")
+@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Response.class)))
+@ApiLog
+@PreAuthorize("hasRole('MANAGER')")
+@PostMapping
+public ResponseEntity<Response> createTask(@Valid @RequestBody CreateTaskRequest request) { ... }
 ```
 
 Each annotated call automatically logs:
